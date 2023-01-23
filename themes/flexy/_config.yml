@@ -5,7 +5,7 @@ pubkey:
 menu:
   this.root: /
   fwd.github: https://github.com/deB4SH
-  fwd.twitter: https://twitter.com/deb4sh
+  fwd.mastodon: https://hachyderm.io/@deb4sh
 
 # Content
 excerpt_link: Read more
