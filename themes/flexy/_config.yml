@@ -1,0 +1,15 @@
+# config
+logo: /images/b4sh_de_logo.svg
+keywords: "software developer, software, devops, ops, kubernetes, homelab"
+pubkey:
+menu:
+  this.root: /
+  fwd.github: https://github.com/deB4SH
+  fwd.twitter: https://twitter.com/deb4sh
+
+# Content
+excerpt_link: Read more
+
+# Miscellaneous
+rss: /atom.xml
+#google_analytics:
