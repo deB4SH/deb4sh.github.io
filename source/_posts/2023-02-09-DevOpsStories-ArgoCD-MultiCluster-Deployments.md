@@ -14,17 +14,17 @@ tags:
 ---
 
 Hi all, 
-I'm currently working on refactoring the way to set up kubernetes clusters within the infrastructure of my current employer. (Role: Plattform Engineer)
-Due to growing configuration requirements and time-consuming decisions we've decided within our team that is time to refactor the stack and try out something new. 
+I'm currently working on refactoring the way to set up kubernetes clusters within the infrastructure of my current employer. (Role: Platform Engineer)
+Due to growing configuration requirements and time-consuming decisions we’ve decided within our team that it is time to refactor the stack and try out something new. 
 The current setup is based on flux-cd with a self-written templating software to render manifests based on a single configuration file. 
-This configuration file is called `config.yaml`, who would have guessed that, and contains all cricital information to bootstrap and deploy a new cluster environment. 
+This configuration file is called config.yaml, who would have guessed that, and contains all critical information to bootstrap and deploy a new cluster environment. 
 Basic manifests are provided from an internal *kubernetes service catalog* which is version pinned for a cluster. 
 The rendered manifests are stored within a dedicated kubernetes-clusters repository (`${cluster.name}/cluster.generated/${service.name}`) and are initially deployed with a ci/cd approach to apply the tanzu kubernetes cluster and kickstart flux-cd on it. 
 After the initial setup: flux-cd picks up the stored manifest files within the kubernetes cluster repository and installs everything. 
 
-A catalog deployment from our kubernetes service catalog may looks like:
+A catalog deployment from our kubernetes service catalog may look like:
 
-> **NOTE:** I will focus on the cluster part here. The service catalog is collection of typical flux manifests (HelmRepository, HelmRelease) with a default configuration in it.
+> **NOTE:** I will focus on the cluster part here. The service catalog is a collection of typical flux manifests (HelmRepository, HelmRelease) with a default configuration in it. 
 
 For the reference the following code snippet provides the Git Repository for flux-cd to pull manifests from.
 ```yaml
@@ -67,9 +67,9 @@ spec:
 
 As you may already see we're adding a (not so valid) blank placeholder patch that is required for the next steps.
 To change values for the helm release we are appending a patch to the flux kustomization. 
-Due to the limitation that flux doesn't have any filesystem at this point of deployment you can't use something like stategic merges with files. 
+Due to the limitation that flux doesn't have any filesystem at this point of deployment you can't use something like strategic merges with files. 
 
-The following listing shows a example patch that is appended on the flux kustomization at the last position within the patches list.
+The following listing shows an example patch that is appended on the flux kustomization at the last position within the patches list.
 
 ```yaml
 - op: add
@@ -138,7 +138,11 @@ Due to the reproducable rendered templates we are able to throw away the **clust
 The downside is that upgrades on our infrastructure or changes to it are time consuming, due to the fact that everything is maintained within it's dedicated reposiotory. There is no centralization. 
 Every change needs to be done within the golden configuration file for each environment, which results in a render of the templates, which also results in a validation of the rendered manifests and a checkin of every required change.
 Each deployment has multiple files for patches and changes to the base-configuration which can't be loaded from a file or merged with strategic merges.
-The process sounds fun when it's done for a single environment.. if there are twenty.. good luck with that.
+
+> **NOTE:** The process sounds fun when it's done for a single environment.. if there are twenty.. good luck with that.
+
+The scalability of this approach lacks behind and each new cluster creates a new context for our team-members to keep track of. 
+Without any action against this: it is going to be a big pain-point in daily operation.
 
 To reduce the costs of maintenance for every environment we want to create a cockpit from which we can deploy manifests remotly.
 We also want to aggregate the configuration files for each environment within one repository, so you dont need to switch contexts all the time. 
@@ -149,7 +153,7 @@ Within a small timeframe and some proof-of-concept work we decided to go with ar
 
 To tackle the presented issues from the beforehand chapter I like to take a deeper dive into the structure of our current argocd stack and the proof of concept stack before that. 
 
-Removing context switches was one of our primary goals. Achiving this resulted in a complete restructuring of our kubernetes service catalog and deployment strategy. Everything from manifests to deployment configuration should be located in a single repository. The result of this restructuring is shown in the following tree view listing.
+Removing context switches was one of our primary goals. Achieving this resulted in a complete restructuring of our kubernetes service catalog and deployment strategy. Everything from manifests to deployment configuration should be located in a single repository. The result of this restructuring is shown in the following tree view listing.
 
 ```console
 ./
@@ -160,7 +164,7 @@ Removing context switches was one of our primary goals. Achiving this resulted i
 └── cluster-environments
 ```
 
-As always it is neccessary to question your own concepts and dicisions.
+As always it is necessary to question your own concepts and dicisions.
 The initial setup was split into two repositories, one which contains all manifests, one that hold the deployment configuration.
 The advantage of collecting everything is kind of obvious but we reduced the amount of context changes with tremendously. The workflow of editing and adding new software to our general deployment is now streamlined.
 
@@ -169,7 +173,7 @@ On of the next migration steps was to ease up the usage of helm.
 ## Setting up Helm Subcharts
 Many of our applications we are providing to our internal customers are provided via helm. Helm allows it's users to inline values or load them directly from configuration files. 
 
-To allow extenability of one helm chart we've build our own helm charts ontop of the existing ones and refence the desired charts as subcharts/dependencies. 
+To allow extendability of one helm chart we've build our own helm charts ontop of the existing ones and reference the desired charts as subcharts/dependencies. 
 
 Structurally our setup for helm charts looks like the following tree view.
 
@@ -230,7 +234,7 @@ external-dns:
 
 The important point is that values of your dependencies require a correct indentation under the same name as configured within the chart.
 
-Additional manifests, like the root-ca, are provided from within the template directory. With this approach you can easyly provide additional manifests with the default installation. 
+Additional manifests, like the root-ca, are provided from within the template directory. With this approach you can easily provide additional manifests with the default installation. 
 
 ```yaml
 apiVersion: v1
@@ -256,7 +260,7 @@ Within the next chapter I like to present the [application set](https://argo-cd.
 The argocd application set provides the functionality to generate automatically applications based on set generators. To keep the focus on the general structure I removed a lot of moving parts from the next ApplicationSet and reduced it to the critical components. 
 
 In our current infrastructure we are following the general consense to provide all projects a development cluster for their daily-task and a seperate production cluster for the actualy live service.
-With the following ApplicationSet we are generating for each cluster, which is labeld with dev or prd, a application to rollout the external dns. 
+With the following ApplicationSet we are generating for each cluster, which is labeld with dev or prd, an application to rollout the external dns. 
 
 > **NOTE:** The cluster connection is done beforehand in a seperate task. To add clusters to a argocd instance please use the argocd cli or create the service accounts on your own. 
 
@@ -319,7 +323,9 @@ Through this method we are reducing the required configuration tremendously. Onl
 We also achieved with this approach that all values are directly filebased and not embedded within any kustomize-alike patch file. 
 
 # Conclusion
-With our switch from fluxcd to argocd we were able to streamline our tasks as plattform team and provision our client clusters directly without the hassle of managing multiple cluster configuration within serveral places. We were able to reduce the code complexity that was building up with more and more services running per default on our plattform. We were able to reduce the required time to maintain a large number of clusters with a small team and deliver updates quick to each environment. 
+With our switch from fluxcd to argocd we were able to streamline our tasks as platform team and provision our client clusters directly without the hassle of managing multiple cluster configuration within several places. We were able to reduce the code complexity that was building up with more and more services running per default on our platform. We were able to reduce the required time to maintain numerous clusters with a small team and deliver updates quick to each environment. 
+We were able to scale our platform accordingly to our needs without the hassle of maintain a collection of different scopes. We were able to reduce our time to market by hours due to a smaller configuration footprint.
+We were able to onboard new collegues easily due to the reduced complexity.
 
 As a clarification: Fluxcd is not a bad tool. Do not get me wrong. It simply did not cater our needs. 
 
