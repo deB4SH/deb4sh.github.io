@@ -14,7 +14,7 @@ tags:
 ---
 
 Hi all, 
-I'm currently working on refactoring the way to set up kubernetes clusters within the infrastructure of my current employer. (Role: Platform Engineer)
+I'm currently working on refactoring the way to set up kubernetes clusters within the infrastructure of my current employer. (Role: Platform Engineer) 
 Due to growing configuration requirements and time-consuming decisions we’ve decided within our team that it is time to refactor the stack and try out something new. 
 The current setup is based on flux-cd with a self-written templating software to render manifests based on a single configuration file. 
 This configuration file is called config.yaml, who would have guessed that, and contains all critical information to bootstrap and deploy a new cluster environment. 
