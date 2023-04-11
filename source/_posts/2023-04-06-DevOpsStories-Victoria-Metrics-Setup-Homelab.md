@@ -1,6 +1,6 @@
 ---
 title: DevOpsStories - Victoria Metrics Setup
-date: 2023-03-22 00:00 
+date: 2023-04-06 00:00 
 comments: false 
 tags:
 - kustomize
