@@ -430,7 +430,8 @@ valuesInline:
           - source_labels: [__meta_kubernetes_pod_name]
             action: replace
             target_label: kubernetes_pod_name
-```            
+```
+            
 
 Most of the beforehand patch is the configuration for the agent to scrape targets and can be *ignored* or copied. The important parts are the first few lines.
 With the *remoteWriteUrls* an external data source is configured. Due to the fact that both services are running side-by-side in a single cluster, it is possible to use the cluster ip to route this traffic internally. 
