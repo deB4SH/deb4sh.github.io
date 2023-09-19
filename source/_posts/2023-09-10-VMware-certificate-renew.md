@@ -1,5 +1,5 @@
 ---
-title: Quick'n'Dirty - VMWare Tanzu - Cluster Certificate Renewal
+title: VMWare Tanzu - Cluster Certificate Renewal
 date: 2023-09-10 00:00 
 comments: false 
 tags:
@@ -13,6 +13,9 @@ tags:
 
 Hi all,
 some projects and clusters may enter a maintenance mode in their lifetime and dont receive any updates, changes or even patches for a long time. If something like this happens it may be neccessary to rotate the certificates used by control planes. The control planes of vmware tanzu provide this functionality via kubeadm.
+
+![meme](https://i.imgflip.com/7zmtfu.jpg)
+
 The following script automates this rotation.
 
 ```bash
