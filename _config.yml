@@ -103,6 +103,6 @@ theme: phase
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: git
-  repo: https://github.com/deb4sh/deb4sh.github.io
+  repo: git@github.com:deB4SH/deb4sh.github.io.git
   # example, https://github.com/hexojs/hexojs.github.io
   branch: gh-pages
