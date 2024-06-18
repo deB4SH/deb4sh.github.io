@@ -1,6 +1,6 @@
 ---
 title: DevOpsStory - Survive the Nexus Configuration-Hell
-date: 2024-03-06 00:00 
+date: 2024-06-17 00:00 
 comments: false 
 tags:
 - terraform
