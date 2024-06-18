@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+ <html lang="en"> 
+<head>
+  <meta charset="utf-8">
+  
+  <title>DevOpsStory - Keep your local maven repository clear | log.out(&#34;blog&#34;)</title>
+  <meta name="author" content="deB4SH">
+
+  
+  <meta name="description" content="a journey between software and ops topics">
+  
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  <!--[if lt IE 9]><script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script><![endif]-->
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <header id="header" class="inner"><nav>
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+</nav></header>
+  <div id="content" class="inner"><article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="p-name title" itemprop="headline name">DevOpsStory - Keep your local maven repository clear</h1>
+  
+
+    <time class="dt-published" datetime="2021-04-20T22:00:00.000Z">
+  <span class="day">21</span><span class="month">Apr</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hi there!</p>
+<p>Due to my current project I’m heavly in contact with an CI/CD infrastructure provided by an client. There is no downside with that, but it generates a massive security and build issue if something like the local maven-repository is shared between multiple build-nodes. The shared local repository opens up a lot of attack vectors for applications build on that same node, it also generates noise if someone tries to disturb your build. </p>
+<p><em>Example Case</em><br>Someone with malicious motives could install through mvn install a broken or wrong jar instead of the correct dependency you are expecting to receive.<br>This is easyly done through</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn install:install-file –Dfile=my_dummy_app.jar -DgroupId=randomGroup.tld -DartifactId=awesomeArtifact -Dversion=1.0.0</span><br></pre></td></tr></table></figure>
+
+<p>Once the jar is in your local maven repository in place, maven doesn’t redownload it in first place. It expects that you’re doing the right thing.<br>Sooo= Clearing the maven cache is one way to be ahead of this. </p>
+<h2 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h2><p>Clearing the maven cache is a pretty easy task todo. There are two easy ways to remove it from your local environment or ci/cd environment.</p>
+<h3 id="Remove-the-cache"><a href="#Remove-the-cache" class="headerlink" title="Remove the cache"></a>Remove the cache</h3><p>Due to its file-based nature of the maven repository cache you can simply remove relevant data from it and you are good to go. In most cases the maven cache is configured by default in a <em>.m2</em> directory in your home or the executing user. </p>
+<p>Windows: C:\Users\YOUR_USERNAME.m2<br>Linux: /home/YOUR_USERNAME/.m2</p>
+<p>Keep in mind that dot-directories are hidden by default in many linux-derivates. After you’ve located your .m2 simply execute a remove command on it and the whole cache should be removed.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rm -rf .m2/</span><br></pre></td></tr></table></figure>
+
+<p>Inside a CI-environment with shared cache this may hurt other build-tasks, so a more lacy approach is needed. Simply head down the .m2 directory into the <em>repository</em> directory and remove components with caution. </p>
+<p>If you’re using <em>clean install</em> it is a good task to clean up your build-artifacts after deploying them into an artifact directory. </p>
+<h3 id="Purge-the-cache-through-maven"><a href="#Purge-the-cache-through-maven" class="headerlink" title="Purge the cache through maven"></a>Purge the cache through maven</h3><p>An even simpler approach is purging the maven cache with maven. The dependency plugin provides a purge-local-repository function <a target="_blank" rel="noopener" href="https://maven.apache.org/plugins/maven-dependency-plugin/examples/purging-local-repository.html">https://maven.apache.org/plugins/maven-dependency-plugin/examples/purging-local-repository.html</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn dependency:purge-local-repository</span><br></pre></td></tr></table></figure>
+
+<p>Within the default setup of the dependency plugin it purges everything including transitive dependencies of your application. This would result in a complete redownload of all artifacts. With the parameter actTransitively this behaviour is deactivatable. </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn dependency:purge-local-repository -DactTransitively=false</span><br></pre></td></tr></table></figure>
+
+<p>After taking a look into two approaches how to remove artifacts from the local cache. How about take a look into changing the cache dir into something temporary?</p>
+<h2 id="Solution-Number-Two"><a href="#Solution-Number-Two" class="headerlink" title="Solution Number Two"></a>Solution Number Two</h2><p>Most of our CI/CD infrastructures are build on top of containers (eg. docker container). An another approach would be redirecting your local maven repository inside the container. This wouldnt resolve the issue when working with ssh-workers/nodes that are persistent. </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn -Dmaven.repo.local=/tmp/mvn_repo clean install</span><br></pre></td></tr></table></figure>
+
+<p>The maven parameter <em>maven.repo.local</em> allows you to redirect the cache for the current maven call. </p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>In short, we looked at three approaches to tackel the issue with shared maven cache repositories in your environments.<br>Based on my experience I often tend towards <em>Solution Number Two</em>, while writing down build steps. It fits most projects best and the overhead in traffic is often compensated through a local maven-mirror.</p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/maven/">maven</a><a href="/tags/devopsstory/">devopsstory</a><a href="/tags/devops/">devops</a><a href="/tags/ops/">ops</a><a href="/tags/build-infrastructure/">build infrastructure</a><a href="/tags/maven-basics/">maven basics</a></div>
+
+      
+    </footer>
+    
+      
+
+    
+    
+  </div>
+  
+</article>
+</div>
+  <footer id="footer" class="inner"><div class="social alignright">
+  
+  
+  
+    <a class="github" target="_blank" rel="noopener" href="https://github.com/deb4sh" title="GitHub">GitHub</a>
+  
+  <a class="rss" href="/atom.xml" title="RSS">RSS</a>
+</div>
+<p>
+  
+  &copy; 2024 deB4SH
+  
+</p>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+<script>
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div id="phasebeam">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+
+<script src="/js/phasebeam.js"></script>
+
+</body>
+</html>

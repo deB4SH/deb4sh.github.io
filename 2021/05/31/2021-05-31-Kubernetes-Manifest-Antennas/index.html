@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+ <html lang="en"> 
+<head>
+  <meta charset="utf-8">
+  
+  <title>Homelab Stories - Deploy your own Instance of Antennas in your Homelab | log.out(&#34;blog&#34;)</title>
+  <meta name="author" content="deB4SH">
+
+  
+  <meta name="description" content="a journey between software and ops topics">
+  
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  <!--[if lt IE 9]><script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script><![endif]-->
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <header id="header" class="inner"><nav>
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+</nav></header>
+  <div id="content" class="inner"><article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="p-name title" itemprop="headline name">Homelab Stories - Deploy your own Instance of Antennas in your Homelab</h1>
+  
+
+    <time class="dt-published" datetime="2021-05-30T22:00:00.000Z">
+  <span class="day">31</span><span class="month">May</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hi all,</p>
+<p>Watching linear tv-programs is annoying, or? But sometimes some good talk shows or series are airing over the “old” tv. A general purpose service to stream iptv content into your local network is<br>tvheaded. Sadly some awesome projects like jellyfin or plex are not able to catch the streams directly from tvheaded and require a HDHomeRun api. Antennas serves as proxy between the media systems and<br>tvheaded as api-gateway.</p>
+<h2 id="Motivation"><a href="#Motivation" class="headerlink" title="Motivation"></a>Motivation</h2><p>As viewer want to watch and record tv shows directly without any requirement of letting my computer run or record it via vlc.<br>As viewer I want to watch recorded shows somewhere, without being required to some magic like calling through vlc some kind of volume on my NAS.<br>Also as viewer would like to use my media system (jellyfin) to stream the dvr content of, due to easy usage through any device here.<br>Jellyfin is available on android and firetv, so it should be easy to provide it on any device inside my household. </p>
+<p>Currently there is a TVheaded available that maps the iptv service provided by the telekom to all local devices. </p>
+<p>From the looks of it: TVheaded as inbound, Antennas as API-Gateway, Jellyfin as Media-System for all devices for easier access</p>
+<h2 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h2><p>To get antennas running in our cluster we are required to provide serveral manifest files that contain crucial parts. I am using as namespace media in this case, but you are free to change that to whatever you desire.<br>It is a good practice to create for each individual application a namespace, but also to group them by topic. Feel free to change it to your desire.</p>
+<p>Lets start with the deployment.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">antennas</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">media</span></span><br><span class="line"></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">antennas</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">antennas</span></span><br><span class="line">      <span class="attr">name:</span> <span class="string">antennas</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">image:</span> <span class="string">thejf/antennas:latest</span></span><br><span class="line">          <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">          <span class="attr">name:</span> <span class="string">antennas</span></span><br><span class="line">          <span class="attr">ports:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">5004</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">http</span></span><br><span class="line">              <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">          <span class="attr">envFrom:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">configMapRef:</span></span><br><span class="line">                <span class="attr">name:</span> <span class="string">configmap-antennas</span></span><br><span class="line">          <span class="attr">resources:</span></span><br><span class="line">            <span class="attr">limits:</span></span><br><span class="line">              <span class="attr">cpu:</span> <span class="string">250m</span></span><br><span class="line">              <span class="attr">memory:</span> <span class="string">100M</span></span><br><span class="line">            <span class="attr">requests:</span></span><br><span class="line">              <span class="attr">cpu:</span> <span class="string">50m</span></span><br><span class="line">              <span class="attr">memory:</span> <span class="string">30M</span></span><br></pre></td></tr></table></figure>
+
+<p>I know using <strong>latest</strong> as tag is a bad design by default, but sadly the author <em>thejf</em> tagged the latest image only with <strong>latest</strong> not something else. Beside this there are multiple other and older<br>tags available, which may or may not be, working. Also keep in mind: the current image is not available for armv8, armv7 or armhf. If you have set up a mixed cluster please add the following block<br>infront of your container defintion.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">affinity:</span></span><br><span class="line">  <span class="attr">nodeAffinity:</span></span><br><span class="line">    <span class="attr">requiredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line">      <span class="attr">nodeSelectorTerms:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">matchExpressions:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">beta.kubernetes.io/arch</span></span><br><span class="line">              <span class="attr">operator:</span> <span class="string">In</span></span><br><span class="line">              <span class="attr">values:</span></span><br><span class="line">                <span class="bullet">-</span> <span class="string">amd64</span></span><br></pre></td></tr></table></figure>
+
+<p>Beside that: The deployment is pretty much straight forward. Antennas is not really ressource-hungry and is quite “<br>overpowered” with 250m cpu and 100m memory. The interesting part is the configmap which contains the url for antennas and the connectionstrings for tvheaded. Keep in mind, if your tvheaded is secured<br>with credentials you are displaying them here. In that case I would suggest moving them into a secret or even a keystore like Vault.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">configmap-antennas</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">media</span></span><br><span class="line"></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">ANTENNAS_URL:</span> <span class="string">&quot;http://192.168.1.102:5004&quot;</span></span><br><span class="line">  <span class="attr">TVHEADEND_URL:</span> <span class="string">&quot;http://service-tvheaded-clusterip.media:9981&quot;</span></span><br><span class="line">  <span class="attr">TUNER_COUNT:</span> <span class="string">&quot;2&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Antennas itself is providing its api under an ip address in my local area network. Due to the fact that mac-vlan is pretty difficult to provide in kubernetes I went with<br>MetalLB (<a target="_blank" rel="noopener" href="https://metallb.universe.tf/">https://metallb.universe.tf/</a>) which provides a Layer2 loadbalancer for this kind of service. There is also a story available for setting up metallb in your cluster. Check out my post <strong>Homelab Kubernetes Stories - Deploy METALLB in your homemlab</strong> for further information.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">service-antennas</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">http-antennas</span></span><br><span class="line">      <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">      <span class="attr">port:</span> <span class="number">5004</span></span><br><span class="line">      <span class="attr">targetPort:</span> <span class="number">5004</span> <span class="comment">#container port</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">antennas</span></span><br><span class="line">  <span class="attr">externalTrafficPolicy:</span> <span class="string">Local</span></span><br><span class="line">  <span class="attr">loadBalancerIP:</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.102</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">LoadBalancer</span></span><br></pre></td></tr></table></figure>
+
+<p>Due to the functionality of kubernetes to access services and dns names clusterwide over the combination of <strong>servicename</strong>.<strong>namespace</strong> it is pretty easy to access your tvheaded instance if it is running the same cluster.<br>To access the tvheaded instance I am directly using the service of tvheaded, so traffic is not required to run “externally” over a local address in my network. </p>
+<p>If your media system is also running in the same cluster, you could also switch the <em>LoadBalancer</em> against a <em>ClusterIP</em> service or keep them running simultaneously in your infra.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">service-antennas-clusterip</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">ClusterIP</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">http-antennas</span></span><br><span class="line">      <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">      <span class="attr">port:</span> <span class="number">5004</span></span><br><span class="line">      <span class="attr">targetPort:</span> <span class="number">5004</span> <span class="comment">#container port</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">antennas</span></span><br></pre></td></tr></table></figure>
+
+<p>After setting up the three or four files, it is easiest to hook them together in a single kustomization.yaml and use it as aggregation place for simple deployments.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">kustomize.config.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Kustomization</span></span><br><span class="line"></span><br><span class="line"><span class="attr">namespace:</span> <span class="string">media</span></span><br><span class="line"></span><br><span class="line"><span class="attr">resources:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">base/deployment.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">base/service-lb.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">base/service-clusterip.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">base/configmap.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>With that in place it is possible to simply call <code>k apply -k ./</code> to deploy your newly created deployment in your kubernetes cluster inside the namespace media.</p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>We are now pretty much set up to stream any available iptv content from tvheaded via a hdhomerun api. Due to the clusterip it is possible to use that directly in jellyfin via <code>http://service-antennas-clusterip.media:5004/</code>. <em>“No external traffic required”</em><br>If available it is possible to grab XMLtv directly off tvheaded too with <code>http://service-tvheaded-clusterip.media:9981/xmltv/channels</code> to have some kind of tv program available.</p>
+<p>With this setup you should be good to go and <em>stream away</em>. </p>
+<img src="/2021/05/31/2021-05-31-Kubernetes-Manifest-Antennas/antennas-screenshot.jpg" class="" title="screenshot antennas">
+
+<h3 id="FAQ"><a href="#FAQ" class="headerlink" title="FAQ"></a>FAQ</h3><p>If there are any questions - feel free to reach out via <a target="_blank" rel="noopener" href="https://twitter.com/deb4sh">twitter</a> or <a target="_blank" rel="noopener" href="https://www.reddit.com/user/deb4sh">reddit</a></p>
+<h4 id="Why-no-SSL"><a href="#Why-no-SSL" class="headerlink" title="Why no SSL?"></a>Why no SSL?</h4><p>I know. SSL everything. Due to the fact that this is only local traffic, I do not want to setup the ssl required “overhead” like cert-manager, ingress to provide the traffic secured, make everything available with my self-signed root-ca.</p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/kubernetes/">kubernetes</a><a href="/tags/kubernetes-manifest/">kubernetes manifest</a><a href="/tags/service/">service</a><a href="/tags/antennas/">antennas</a><a href="/tags/iptv/">iptv</a></div>
+
+      
+    </footer>
+    
+      
+
+    
+    
+  </div>
+  
+</article>
+</div>
+  <footer id="footer" class="inner"><div class="social alignright">
+  
+  
+  
+    <a class="github" target="_blank" rel="noopener" href="https://github.com/deb4sh" title="GitHub">GitHub</a>
+  
+  <a class="rss" href="/atom.xml" title="RSS">RSS</a>
+</div>
+<p>
+  
+  &copy; 2024 deB4SH
+  
+</p>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+<script>
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div id="phasebeam">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+
+<script src="/js/phasebeam.js"></script>
+
+</body>
+</html>

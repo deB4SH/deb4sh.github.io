@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+ <html lang="en"> 
+<head>
+  <meta charset="utf-8">
+  
+  <title>Pseudocode for some basic Algorithms | log.out(&#34;blog&#34;)</title>
+  <meta name="author" content="deB4SH">
+
+  
+  <meta name="description" content="a journey between software and ops topics">
+  
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  <!--[if lt IE 9]><script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script><![endif]-->
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <header id="header" class="inner"><nav>
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+</nav></header>
+  <div id="content" class="inner"><article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="p-name title" itemprop="headline name">Pseudocode for some basic Algorithms</h1>
+  
+
+    <time class="dt-published" datetime="2014-06-25T22:00:00.000Z">
+  <span class="day">26</span><span class="month">Jun</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hello everyone, I am currently in my final learning phase for exams and stumbled about the topic, writing pseudocode for simple algorithms like selectsort,insertsort or bubblesort. I though about an hour of all three to get a nice and clean version done. I know there are “ready to use”-stuff on Wikipedia or other bulletin -boards… but to get an own version is somehow cool :) </p>
+<h3 id="SelectSort"><a href="#SelectSort" class="headerlink" title="SelectSort"></a>SelectSort</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">selectSort(Array a)&#123;</span><br><span class="line">    i = 0</span><br><span class="line">    l = a.length()</span><br><span class="line">    while(i &lt;length)&#123;</span><br><span class="line">        min = i</span><br><span class="line">        for(j = i+1; j &lt;= n; j++)&#123;</span><br><span class="line">            if(a[j] &lt; a[min])&#123;</span><br><span class="line">                min = j</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    a.switch(i,min)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="InsertSort"><a href="#InsertSort" class="headerlink" title="InsertSort"></a>InsertSort</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">insertSort(Array a)&#123;</span><br><span class="line">    n = a.length()</span><br><span class="line">    i = 0</span><br><span class="line">    while(i&lt;n)&#123;</span><br><span class="line">        for(j=n-1; j&gt;0; j--)&#123;</span><br><span class="line">            if(a[j-1] &gt; a[j])&#123;</span><br><span class="line">                val = a[j]</span><br><span class="line">                a[j] = a[j-1]</span><br><span class="line">                a[j-1] = val</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    i++</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="BubbleSort"><a href="#BubbleSort" class="headerlink" title="BubbleSort"></a>BubbleSort</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">bubbleSort(Array a)&#123;</span><br><span class="line">    n = a.length()</span><br><span class="line">    while(n&gt;1)&#123;</span><br><span class="line">        for(i=0; i &lt; n-1; i++)&#123;</span><br><span class="line">        if(a[i] &gt; a[i+1])&#123;</span><br><span class="line">            a.switch(i,i+1)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    n--</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/pseudocode/">pseudocode</a><a href="/tags/study-times/">study times</a><a href="/tags/study/">study</a><a href="/tags/algorithmic/">algorithmic</a><a href="/tags/fh-stralsund/">fh stralsund</a></div>
+
+      
+    </footer>
+    
+      
+
+    
+    
+  </div>
+  
+</article>
+</div>
+  <footer id="footer" class="inner"><div class="social alignright">
+  
+  
+  
+    <a class="github" target="_blank" rel="noopener" href="https://github.com/deb4sh" title="GitHub">GitHub</a>
+  
+  <a class="rss" href="/atom.xml" title="RSS">RSS</a>
+</div>
+<p>
+  
+  &copy; 2024 deB4SH
+  
+</p>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+<script>
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div id="phasebeam">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+
+<script src="/js/phasebeam.js"></script>
+
+</body>
+</html>

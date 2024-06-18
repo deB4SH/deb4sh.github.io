@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+ <html lang="en"> 
+<head>
+  <meta charset="utf-8">
+  
+  <title>YART - Yet Another Random Templater | log.out(&#34;blog&#34;)</title>
+  <meta name="author" content="deB4SH">
+
+  
+  <meta name="description" content="a journey between software and ops topics">
+  
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  <!--[if lt IE 9]><script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script><![endif]-->
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <header id="header" class="inner"><nav>
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+</nav></header>
+  <div id="content" class="inner"><article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="p-name title" itemprop="headline name">YART - Yet Another Random Templater</h1>
+  
+
+    <time class="dt-published" datetime="2023-12-07T23:00:00.000Z">
+  <span class="day">8</span><span class="month">Dec</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hi all,<br>in my current role as platform engineer for the Hamburg Port Authority we need to keep the velocity high to provide a good service for our internal clients. As result most of our infrastructure is created through templates in any way. </p>
+<p>To get things up and running we developed a simple templater written in python with all required bindings towards jinja and kept expanding it. Naturally we expanded it without a direct scope and focus on reusability. Things needed to be done and it should work.<br>With growing struggle the need of a new templater arose. The idea of a new clean approach came up. </p>
+<br />
+<img src="https://github.com/deB4SH/YART/blob/main/misc/logo_typo.png?raw=true" width="750" height="auto">
+<br />
+
+<p>Let me present you: YART - yet another random templater</p>
+<p>A <em>simple</em> but extensive templating tool for multiple needs.<br>YART provides you a useful schema validation for your input data to keep it free of issues and also an option to create a dynamic template structure based on your input. </p>
+<p>Most specific for this tool may be the dynamic generation of folders based on your template.<br>It allows you to <em>duplicate</em> a specific structure multiple times.<br>Lets assume the following usecase.<br>You need to configure multiple clusters at once within an repository.<br>Each cluster contains multiple services which require a value configuration.<br>To ease up the installation you split all dedicated values within a folder named after the service.<br>The resulting folder structure may look like the following listing.</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">clusters</span><br><span class="line">└── $name</span><br><span class="line">    ├── externaldns</span><br><span class="line">    └── mailhog</span><br></pre></td></tr></table></figure>
+
+<p>As configuration we are going to assume you want to template the following values onto your manifests.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">clusters:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">happy-path-cluster</span></span><br><span class="line">    <span class="attr">defaults:</span></span><br><span class="line">      <span class="attr">storageClass:</span> <span class="string">&quot;storageclass-happy-path-cluster&quot;</span></span><br><span class="line">      <span class="attr">serviceUri:</span> <span class="string">&quot;happy-path-cluster.corp.local&quot;</span></span><br><span class="line">    <span class="attr">serviceCatalog:</span></span><br><span class="line">      <span class="attr">externalDns:</span></span><br><span class="line">        <span class="attr">powerdnsApiKey:</span> <span class="string">&quot;myAwesomeKey&quot;</span></span><br><span class="line">        <span class="attr">domainFilter:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">uri:</span> <span class="string">&quot;*.subdomain.corp.local&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">uri:</span> <span class="string">&quot;*.sub.corp.local&quot;</span></span><br><span class="line">      <span class="attr">mailhog:</span></span><br><span class="line">        <span class="attr">uri:</span> <span class="string">&quot;mailhog&quot;</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">happier-path-cluster</span></span><br><span class="line">    <span class="attr">defaults:</span></span><br><span class="line">      <span class="attr">storageClass:</span> <span class="string">&quot;storageclass-cluster&quot;</span></span><br><span class="line">      <span class="attr">serviceUri:</span> <span class="string">&quot;happier-path-cluster.corp.local&quot;</span></span><br><span class="line">    <span class="attr">serviceCatalog:</span></span><br><span class="line">      <span class="attr">externalDns:</span></span><br><span class="line">        <span class="attr">powerdnsApiKey:</span> <span class="string">&quot;myAwesomeKey&quot;</span></span><br><span class="line">        <span class="attr">domainFilter:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">uri:</span> <span class="string">&quot;*.subdomain.corp.local&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">uri:</span> <span class="string">&quot;*.sub.corp.local&quot;</span></span><br><span class="line">      <span class="attr">mailhog:</span></span><br><span class="line">        <span class="attr">uri:</span> <span class="string">&quot;mailhog-awesomesauce&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Based on this configuration the result looks like the following listing</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">clusters</span><br><span class="line">├── happier-path-cluster</span><br><span class="line">│   ├── externaldns</span><br><span class="line">│   └── mailhog</span><br><span class="line">└── happy-path-cluster</span><br><span class="line">    ├── externaldns</span><br><span class="line">    └── mailhog</span><br></pre></td></tr></table></figure>
+
+<p>The templated files could now easily picked up by your gitops tools and applied to the individual clusters.<br>This example is also available as code block wihtin the <a target="_blank" rel="noopener" href="https://github.com/deB4SH/YART/tree/main/src/test/resources/test_cases/05_complex_subschema">YART Repository</a>.</p>
+<p>A wider exaplaination of all features is also available within the <a target="_blank" rel="noopener" href="https://github.com/deB4SH/YART/blob/main/README.md">README.MD</a> within the repository. </p>
+<p>Through the implementation of YART we were able to solve multiple issues with our current template approach and installed a flexable and dynamic way to create our clusters and deployment configuration with ease.</p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/java/">java</a><a href="/tags/jinjava/">jinjava</a><a href="/tags/jinja/">jinja</a><a href="/tags/templating/">templating</a></div>
+
+      
+    </footer>
+    
+      
+
+    
+    
+  </div>
+  
+</article>
+</div>
+  <footer id="footer" class="inner"><div class="social alignright">
+  
+  
+  
+    <a class="github" target="_blank" rel="noopener" href="https://github.com/deb4sh" title="GitHub">GitHub</a>
+  
+  <a class="rss" href="/atom.xml" title="RSS">RSS</a>
+</div>
+<p>
+  
+  &copy; 2024 deB4SH
+  
+</p>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+<script>
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div id="phasebeam">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+
+<script src="/js/phasebeam.js"></script>
+
+</body>
+</html>

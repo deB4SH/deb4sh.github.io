@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+ <html lang="en"> 
+<head>
+  <meta charset="utf-8">
+  
+  <title>Issues with Cubietruck / Cubieboard 3 | log.out(&#34;blog&#34;)</title>
+  <meta name="author" content="deB4SH">
+
+  
+  <meta name="description" content="a journey between software and ops topics">
+  
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  <!--[if lt IE 9]><script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script><![endif]-->
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <header id="header" class="inner"><nav>
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+</nav></header>
+  <div id="content" class="inner"><article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="p-name title" itemprop="headline name">Issues with Cubietruck / Cubieboard 3</h1>
+  
+
+    <time class="dt-published" datetime="2014-06-30T22:00:00.000Z">
+  <span class="day">1</span><span class="month">Jul</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hey everyone, I am currently setting up my cubietruck to get my personal cloud running with owncloud and services like firefox sync to backup my browsing history. I ran into some stupid things caused by ubuntu.com behaviour with hosting sources for old distributions on ports.ubunut.com. Linaro for Cubietruck runs from start with Quantal Quetzal Ubuntu, what is fine. After setting up the system , my usual behavior is, to get the lasted updates and fixes but nothing happend just 404 errors from ubuntu.com. After checking things like connection error on IPv6 and other stupid things, I check back if there is still something up for quantal. Nope, nothing in there… What now? You just need to update your /etc/apt/source.list - I uploaded my new one to 2 hosts. phcn.de (<a target="_blank" rel="noopener" href="http://paste.phcn.de/?i=1409570170">http://paste.phcn.de/?i=1409570170</a>) w8l.org (<a target="_blank" rel="noopener" href="http://paste.w8l.org/kt82xg4erqo9">http://paste.w8l.org/kt82xg4erqo9</a>)</p>
+<p>After updating your souces just type into the console apt-get update apt-get -y dist-upgrade</p>
+<p>The system-ugrade on cubietruck may take a while - for me it was around an half hour to an hour.</p>
+<p>Hope this could help some new-commers :)</p>
+<h2 id="Update-09-01-2021"><a href="#Update-09-01-2021" class="headerlink" title="Update: 09.01.2021"></a>Update: 09.01.2021</h2><p>Seems that both paste-services removed the past entries. Therefor this log entry is just for history reasons still available. </p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/Cubietruck/">Cubietruck</a><a href="/tags/Cubieboard-3/">Cubieboard 3</a><a href="/tags/Unix/">Unix</a><a href="/tags/UnixIssues/">UnixIssues</a></div>
+
+      
+    </footer>
+    
+      
+
+    
+    
+  </div>
+  
+</article>
+</div>
+  <footer id="footer" class="inner"><div class="social alignright">
+  
+  
+  
+    <a class="github" target="_blank" rel="noopener" href="https://github.com/deb4sh" title="GitHub">GitHub</a>
+  
+  <a class="rss" href="/atom.xml" title="RSS">RSS</a>
+</div>
+<p>
+  
+  &copy; 2024 deB4SH
+  
+</p>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+<script>
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div id="phasebeam">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+
+<script src="/js/phasebeam.js"></script>
+
+</body>
+</html>

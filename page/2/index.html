@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+ <html lang="en"> 
+<head>
+  <meta charset="utf-8">
+  
+  <title>Page 2 | log.out(&#34;blog&#34;)</title>
+  <meta name="author" content="deB4SH">
+
+  
+  <meta name="description" content="a journey between software and ops topics">
+  
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  <!--[if lt IE 9]><script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script><![endif]-->
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <header id="header" class="inner"><nav>
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+</nav></header>
+  <div id="content" class="inner">
+  <article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="title"><a href="/2021/05/31/2021-05-31-Kubernetes-Manifest-Antennas/">Homelab Stories - Deploy your own Instance of Antennas in your Homelab</a></h1>
+  
+
+    <time class="dt-published" datetime="2021-05-30T22:00:00.000Z">
+  <span class="day">31</span><span class="month">May</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hi all,</p>
+<p>Watching linear tv-programs is annoying, or? But sometimes some good talk shows or series are airing over the “old” tv. A general purpose service to stream iptv content into your local network is<br>tvheaded. Sadly some awesome projects like jellyfin or plex are not able to catch the streams directly from tvheaded and require a HDHomeRun api. Antennas serves as proxy between the media systems and<br>tvheaded as api-gateway.</p>
+<h2 id="Motivation"><a href="#Motivation" class="headerlink" title="Motivation"></a>Motivation</h2><p>As viewer want to watch and record tv shows directly without any requirement of letting my computer run or record it via vlc.<br>As viewer I want to watch recorded shows somewhere, without being required to some magic like calling through vlc some kind of volume on my NAS.<br>Also as viewer would like to use my media system (jellyfin) to stream the dvr content of, due to easy usage through any device here.<br>Jellyfin is available on android and firetv, so it should be easy to provide it on any device inside my household. </p>
+<p>Currently there is a TVheaded available that maps the iptv service provided by the telekom to all local devices. </p>
+<p>From the looks of it: TVheaded as inbound, Antennas as API-Gateway, Jellyfin as Media-System for all devices for easier access</p>
+<h2 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h2><p>To get antennas running in our cluster we are required to provide serveral manifest files that contain crucial parts. I am using as namespace media in this case, but you are free to change that to whatever you desire.<br>It is a good practice to create for each individual application a namespace, but also to group them by topic. Feel free to change it to your desire.</p>
+<p>Lets start with the deployment.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">antennas</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">media</span></span><br><span class="line"></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">antennas</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">antennas</span></span><br><span class="line">      <span class="attr">name:</span> <span class="string">antennas</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">image:</span> <span class="string">thejf/antennas:latest</span></span><br><span class="line">          <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">          <span class="attr">name:</span> <span class="string">antennas</span></span><br><span class="line">          <span class="attr">ports:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">5004</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">http</span></span><br><span class="line">              <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">          <span class="attr">envFrom:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">configMapRef:</span></span><br><span class="line">                <span class="attr">name:</span> <span class="string">configmap-antennas</span></span><br><span class="line">          <span class="attr">resources:</span></span><br><span class="line">            <span class="attr">limits:</span></span><br><span class="line">              <span class="attr">cpu:</span> <span class="string">250m</span></span><br><span class="line">              <span class="attr">memory:</span> <span class="string">100M</span></span><br><span class="line">            <span class="attr">requests:</span></span><br><span class="line">              <span class="attr">cpu:</span> <span class="string">50m</span></span><br><span class="line">              <span class="attr">memory:</span> <span class="string">30M</span></span><br></pre></td></tr></table></figure>
+
+<p>I know using <strong>latest</strong> as tag is a bad design by default, but sadly the author <em>thejf</em> tagged the latest image only with <strong>latest</strong> not something else. Beside this there are multiple other and older<br>tags available, which may or may not be, working. Also keep in mind: the current image is not available for armv8, armv7 or armhf. If you have set up a mixed cluster please add the following block<br>infront of your container defintion.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">affinity:</span></span><br><span class="line">  <span class="attr">nodeAffinity:</span></span><br><span class="line">    <span class="attr">requiredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line">      <span class="attr">nodeSelectorTerms:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">matchExpressions:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">beta.kubernetes.io/arch</span></span><br><span class="line">              <span class="attr">operator:</span> <span class="string">In</span></span><br><span class="line">              <span class="attr">values:</span></span><br><span class="line">                <span class="bullet">-</span> <span class="string">amd64</span></span><br></pre></td></tr></table></figure>
+
+<p>Beside that: The deployment is pretty much straight forward. Antennas is not really ressource-hungry and is quite “<br>overpowered” with 250m cpu and 100m memory. The interesting part is the configmap which contains the url for antennas and the connectionstrings for tvheaded. Keep in mind, if your tvheaded is secured<br>with credentials you are displaying them here. In that case I would suggest moving them into a secret or even a keystore like Vault.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">configmap-antennas</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">media</span></span><br><span class="line"></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">ANTENNAS_URL:</span> <span class="string">&quot;http://192.168.1.102:5004&quot;</span></span><br><span class="line">  <span class="attr">TVHEADEND_URL:</span> <span class="string">&quot;http://service-tvheaded-clusterip.media:9981&quot;</span></span><br><span class="line">  <span class="attr">TUNER_COUNT:</span> <span class="string">&quot;2&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Antennas itself is providing its api under an ip address in my local area network. Due to the fact that mac-vlan is pretty difficult to provide in kubernetes I went with<br>MetalLB (<a target="_blank" rel="noopener" href="https://metallb.universe.tf/">https://metallb.universe.tf/</a>) which provides a Layer2 loadbalancer for this kind of service. There is also a story available for setting up metallb in your cluster. Check out my post <strong>Homelab Kubernetes Stories - Deploy METALLB in your homemlab</strong> for further information.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">service-antennas</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">http-antennas</span></span><br><span class="line">      <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">      <span class="attr">port:</span> <span class="number">5004</span></span><br><span class="line">      <span class="attr">targetPort:</span> <span class="number">5004</span> <span class="comment">#container port</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">antennas</span></span><br><span class="line">  <span class="attr">externalTrafficPolicy:</span> <span class="string">Local</span></span><br><span class="line">  <span class="attr">loadBalancerIP:</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.102</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">LoadBalancer</span></span><br></pre></td></tr></table></figure>
+
+<p>Due to the functionality of kubernetes to access services and dns names clusterwide over the combination of <strong>servicename</strong>.<strong>namespace</strong> it is pretty easy to access your tvheaded instance if it is running the same cluster.<br>To access the tvheaded instance I am directly using the service of tvheaded, so traffic is not required to run “externally” over a local address in my network. </p>
+<p>If your media system is also running in the same cluster, you could also switch the <em>LoadBalancer</em> against a <em>ClusterIP</em> service or keep them running simultaneously in your infra.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">service-antennas-clusterip</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">ClusterIP</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">http-antennas</span></span><br><span class="line">      <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">      <span class="attr">port:</span> <span class="number">5004</span></span><br><span class="line">      <span class="attr">targetPort:</span> <span class="number">5004</span> <span class="comment">#container port</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">antennas</span></span><br></pre></td></tr></table></figure>
+
+<p>After setting up the three or four files, it is easiest to hook them together in a single kustomization.yaml and use it as aggregation place for simple deployments.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">kustomize.config.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Kustomization</span></span><br><span class="line"></span><br><span class="line"><span class="attr">namespace:</span> <span class="string">media</span></span><br><span class="line"></span><br><span class="line"><span class="attr">resources:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">base/deployment.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">base/service-lb.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">base/service-clusterip.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">base/configmap.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>With that in place it is possible to simply call <code>k apply -k ./</code> to deploy your newly created deployment in your kubernetes cluster inside the namespace media.</p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>We are now pretty much set up to stream any available iptv content from tvheaded via a hdhomerun api. Due to the clusterip it is possible to use that directly in jellyfin via <code>http://service-antennas-clusterip.media:5004/</code>. <em>“No external traffic required”</em><br>If available it is possible to grab XMLtv directly off tvheaded too with <code>http://service-tvheaded-clusterip.media:9981/xmltv/channels</code> to have some kind of tv program available.</p>
+<p>With this setup you should be good to go and <em>stream away</em>. </p>
+<img src="/2021/05/31/2021-05-31-Kubernetes-Manifest-Antennas/antennas-screenshot.jpg" class="" title="screenshot antennas">
+
+<h3 id="FAQ"><a href="#FAQ" class="headerlink" title="FAQ"></a>FAQ</h3><p>If there are any questions - feel free to reach out via <a target="_blank" rel="noopener" href="https://twitter.com/deb4sh">twitter</a> or <a target="_blank" rel="noopener" href="https://www.reddit.com/user/deb4sh">reddit</a></p>
+<h4 id="Why-no-SSL"><a href="#Why-no-SSL" class="headerlink" title="Why no SSL?"></a>Why no SSL?</h4><p>I know. SSL everything. Due to the fact that this is only local traffic, I do not want to setup the ssl required “overhead” like cert-manager, ingress to provide the traffic secured, make everything available with my self-signed root-ca.</p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/kubernetes/">kubernetes</a><a href="/tags/kubernetes-manifest/">kubernetes manifest</a><a href="/tags/service/">service</a><a href="/tags/antennas/">antennas</a><a href="/tags/iptv/">iptv</a></div>
+
+      
+    </footer>
+    
+    
+  </div>
+  
+</article>
+
+
+  <article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="title"><a href="/2021/04/21/2021-04-21-Maven-Ops-Clearing-Local-Repo/">DevOpsStory - Keep your local maven repository clear</a></h1>
+  
+
+    <time class="dt-published" datetime="2021-04-20T22:00:00.000Z">
+  <span class="day">21</span><span class="month">Apr</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hi there!</p>
+<p>Due to my current project I’m heavly in contact with an CI/CD infrastructure provided by an client. There is no downside with that, but it generates a massive security and build issue if something like the local maven-repository is shared between multiple build-nodes. The shared local repository opens up a lot of attack vectors for applications build on that same node, it also generates noise if someone tries to disturb your build. </p>
+<p><em>Example Case</em><br>Someone with malicious motives could install through mvn install a broken or wrong jar instead of the correct dependency you are expecting to receive.<br>This is easyly done through</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn install:install-file –Dfile=my_dummy_app.jar -DgroupId=randomGroup.tld -DartifactId=awesomeArtifact -Dversion=1.0.0</span><br></pre></td></tr></table></figure>
+
+<p>Once the jar is in your local maven repository in place, maven doesn’t redownload it in first place. It expects that you’re doing the right thing.<br>Sooo= Clearing the maven cache is one way to be ahead of this. </p>
+<h2 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h2><p>Clearing the maven cache is a pretty easy task todo. There are two easy ways to remove it from your local environment or ci/cd environment.</p>
+<h3 id="Remove-the-cache"><a href="#Remove-the-cache" class="headerlink" title="Remove the cache"></a>Remove the cache</h3><p>Due to its file-based nature of the maven repository cache you can simply remove relevant data from it and you are good to go. In most cases the maven cache is configured by default in a <em>.m2</em> directory in your home or the executing user. </p>
+<p>Windows: C:\Users\YOUR_USERNAME.m2<br>Linux: /home/YOUR_USERNAME/.m2</p>
+<p>Keep in mind that dot-directories are hidden by default in many linux-derivates. After you’ve located your .m2 simply execute a remove command on it and the whole cache should be removed.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rm -rf .m2/</span><br></pre></td></tr></table></figure>
+
+<p>Inside a CI-environment with shared cache this may hurt other build-tasks, so a more lacy approach is needed. Simply head down the .m2 directory into the <em>repository</em> directory and remove components with caution. </p>
+<p>If you’re using <em>clean install</em> it is a good task to clean up your build-artifacts after deploying them into an artifact directory. </p>
+<h3 id="Purge-the-cache-through-maven"><a href="#Purge-the-cache-through-maven" class="headerlink" title="Purge the cache through maven"></a>Purge the cache through maven</h3><p>An even simpler approach is purging the maven cache with maven. The dependency plugin provides a purge-local-repository function <a target="_blank" rel="noopener" href="https://maven.apache.org/plugins/maven-dependency-plugin/examples/purging-local-repository.html">https://maven.apache.org/plugins/maven-dependency-plugin/examples/purging-local-repository.html</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn dependency:purge-local-repository</span><br></pre></td></tr></table></figure>
+
+<p>Within the default setup of the dependency plugin it purges everything including transitive dependencies of your application. This would result in a complete redownload of all artifacts. With the parameter actTransitively this behaviour is deactivatable. </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn dependency:purge-local-repository -DactTransitively=false</span><br></pre></td></tr></table></figure>
+
+<p>After taking a look into two approaches how to remove artifacts from the local cache. How about take a look into changing the cache dir into something temporary?</p>
+<h2 id="Solution-Number-Two"><a href="#Solution-Number-Two" class="headerlink" title="Solution Number Two"></a>Solution Number Two</h2><p>Most of our CI/CD infrastructures are build on top of containers (eg. docker container). An another approach would be redirecting your local maven repository inside the container. This wouldnt resolve the issue when working with ssh-workers/nodes that are persistent. </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn -Dmaven.repo.local=/tmp/mvn_repo clean install</span><br></pre></td></tr></table></figure>
+
+<p>The maven parameter <em>maven.repo.local</em> allows you to redirect the cache for the current maven call. </p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>In short, we looked at three approaches to tackel the issue with shared maven cache repositories in your environments.<br>Based on my experience I often tend towards <em>Solution Number Two</em>, while writing down build steps. It fits most projects best and the overhead in traffic is often compensated through a local maven-mirror.</p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/maven/">maven</a><a href="/tags/devopsstory/">devopsstory</a><a href="/tags/devops/">devops</a><a href="/tags/ops/">ops</a><a href="/tags/build-infrastructure/">build infrastructure</a><a href="/tags/maven-basics/">maven basics</a></div>
+
+      
+    </footer>
+    
+    
+  </div>
+  
+</article>
+
+
+  <article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="title"><a href="/2021/04/02/2021-04-02-Bamboo-MavenTask-Builder/">Building a Maven Task Builder for Bamboo</a></h1>
+  
+
+    <time class="dt-published" datetime="2021-04-01T22:00:00.000Z">
+  <span class="day">2</span><span class="month">Apr</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>When working with the Atlassian Bamboo CI Server it gets pretty quick annoying to setup a nice and readable build pipeline. Within my current project we’re having multiple consecutive maven tasks that build, test, deploy parts of the application. </p>
+<h3 id="Source"><a href="#Source" class="headerlink" title="Source"></a>Source</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;DEBUG-MSG: Runtime-Extender start&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> intervalholder = <span class="literal">null</span>;</span><br><span class="line">intervalholder =  <span class="built_in">setInterval</span>(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(<span class="built_in">Object</span>.keys(openerp.instances).length &gt; <span class="number">0</span>)&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&quot;Found openerp.instance, load your plugins&quot;</span>);</span><br><span class="line">        openerpInstance = openerp.instances.instance0;</span><br><span class="line">        <span class="comment">//load here</span></span><br><span class="line">        openerp.yourextension(openerpInstance);</span><br><span class="line">        <span class="built_in">clearInterval</span>(intervalholder);</span><br><span class="line">        intervalholder = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;, <span class="number">1000</span>) ;</span><br><span class="line">openerp.yourextension = <span class="function"><span class="keyword">function</span>(<span class="params">instance</span>)</span>&#123;</span><br><span class="line">    <span class="keyword">var</span> <span class="built_in">module</span> = instance.pointofsale;</span><br><span class="line">    <span class="comment">//code here</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>nice and simple, mh? ;)</p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/ci/">ci</a><a href="/tags/cd/">cd</a><a href="/tags/bamboo/">bamboo</a><a href="/tags/bamboo-ci-server/">bamboo ci server</a><a href="/tags/maven/">maven</a><a href="/tags/java/">java</a></div>
+
+      
+    </footer>
+    
+    
+  </div>
+  
+</article>
+
+
+  <article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="title"><a href="/2020/08/18/2020-08-18-Bamboo-Env-Inject/">Bamboo CI Server Environment Variable Inject</a></h1>
+  
+
+    <time class="dt-published" datetime="2020-08-17T22:00:00.000Z">
+  <span class="day">18</span><span class="month">Aug</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hi there! </p>
+<p>Due to a new project at work I got into a deep dive with the <a target="_blank" rel="noopener" href="https://www.atlassian.com/de/software/bamboo">bamboo build server</a> from atlassian. In around 4 months working as devops and ops engineer for the new project with bamboo, I came to the point that bamboo still needs a lot of work to be competetive with <a target="_blank" rel="noopener" href="https://www.jenkins.io/">jenkins</a> or something like gitlab-ci or github-ci. </p>
+<p>While developing the pipeline for releases, an issue came up that is quite difficult to resolve via bamboo. The issue was: exporting the version number of an branch and setting the maven version number aftwards based on that extracted number. Within jenkins I would extract the version number inside the relevant stage and inject it into the environment.<br>A snippet to do this task could look like the following</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">stage(&#x27;setVerion: release-branch&#x27;) &#123;</span><br><span class="line">    when &#123;</span><br><span class="line">        branch &#x27;release/*&#x27;</span><br><span class="line">    &#125;</span><br><span class="line">    environment &#123;</span><br><span class="line">        BRANCHVERSION = sh(</span><br><span class="line">                script: &quot;echo $&#123;env.BRANCH_NAME&#125; | sed -E &#x27;s/release\\/([0-9a-zA-Z.\\-]+)/\\1/&#x27;&quot;,</span><br><span class="line">                returnStdout: true</span><br><span class="line">        ).trim()</span><br><span class="line">    &#125;</span><br><span class="line">    steps &#123;</span><br><span class="line">        echo &#x27;Setting release version&#x27;</span><br><span class="line">        echo &quot;$&#123;BRANCHVERSION&#125;&quot;</span><br><span class="line">        sh &#x27;mvn versions:set -DnewVersion=$&#123;BRANCHVERSION&#125; -f ./pom.xml&#x27;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Within the world of bamboo thats not that quite easy. </p>
+<h2 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h2><p>To achieve the same we need to split up the simple step into 4 parts. </p>
+<p>First we need a script to extract the version number and prepare it in some kind of file to inject it afterwards into the build context. Lets take a look into the following script example. </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/usr/bin/env sh</span></span><br><span class="line">currentBranch=$(echo $bamboo_planRepository_default_branchName)</span><br><span class="line">if [[ $currentBranch == *&quot;release/&quot;* ]]; then</span><br><span class="line">    export versionNumber=$(echo $currentBranch | sed -E &#x27;s/release\/([0-9a-zA-Z.\\-]+)/\1/&#x27;)</span><br><span class="line">else</span><br><span class="line">  export versionNumber=$(echo &quot;0.0.0-SNAPSHOT&quot;)</span><br><span class="line">fi</span><br><span class="line">echo &quot;CONTAINER-VERSIONNUMBER: &quot; $versionNumber</span><br><span class="line">echo &quot;Preparing versionnumber to inject into bamboo&quot;</span><br><span class="line">VALUE=&quot;versionNumber=$versionNumber&quot;</span><br><span class="line">echo $VALUE &gt;&gt; .version.cfg</span><br><span class="line">echo &quot;Created .version.cfg under the root directory&quot;</span><br></pre></td></tr></table></figure>
+<p>Within this script we’re using the provided bamboo variable for branchnames inside a multibranch pipeline. Extracting the version number if this is a <em>release</em> branch, else we’re setting 0.0.0-SNAPSHOT as version number.<br>After extracting the versionnumber or setting a development number we are storing the information inside a cfg file that serves as temporary data storage to import data from.<br>With the following step we are going to import the data into the build context.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Task <span class="title">exportBranchVersionNumber</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ScriptTask()</span><br><span class="line">            .description(<span class="string">&quot;Exports the Branch-Version into an environment variable&quot;</span>)</span><br><span class="line">            .interpreterBinSh()</span><br><span class="line">            .inlineBody(<span class="string">&quot;./version.sh&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> InjectVariablesTask <span class="title">injectVersionnumberIntoBamboo</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> InjectVariablesTask()</span><br><span class="line">            .path(<span class="string">&quot;.version.cfg&quot;</span>)</span><br><span class="line">            .namespace(<span class="string">&quot;inject&quot;</span>)</span><br><span class="line">            .scope(InjectVariablesScope.LOCAL);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>After injecting everything into the local scope of the current build context of the bamboo build server you easly can use the variables again over the reference schema. Just keep in mind that you need to add bamboo.inject infront to aquire the correct information.</p>
+<p>The next step just shows how to use this in a real world example.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> MavenTask <span class="title">changeVersion</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> MavenTask()</span><br><span class="line">            .description(<span class="string">&quot;Updates and changes the version number for all containers&quot;</span>)</span><br><span class="line">            .goal(<span class="string">&quot;versions:set -DnewVersion=$&#123;bamboo.inject.versionNumber&#125; -f pom.xml -s settings.xml versions:update-child-modules&quot;</span>)</span><br><span class="line">            .hasTests(<span class="keyword">false</span>)</span><br><span class="line">            .version3()</span><br><span class="line">            .jdk(<span class="string">&quot;JDK 1.8&quot;</span>)</span><br><span class="line">            .executableLabel(<span class="string">&quot;Maven-3.3.9&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>Bamboo needs a lot of scripting magic to get “well-known” pipeline steps running. Currently I am refining even more components of the global build file. Stay tuned for more bamboo guide in future.</p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/shell/">shell</a><a href="/tags/ci/">ci</a><a href="/tags/cd/">cd</a><a href="/tags/bamboo/">bamboo</a><a href="/tags/bamboo-ci-server/">bamboo ci server</a><a href="/tags/bambo-ci/">bambo ci</a><a href="/tags/maven-task-bamboo/">maven task bamboo</a><a href="/tags/script/">script</a></div>
+
+      
+    </footer>
+    
+    
+  </div>
+  
+</article>
+
+
+  <article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="title"><a href="/2014/08/23/2014-08-23-Download-webindex-recursivly/">Download a web-index recursivly</a></h1>
+  
+
+    <time class="dt-published" datetime="2014-08-22T22:00:00.000Z">
+  <span class="day">23</span><span class="month">Aug</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hey there, my professor keeps all its data in a seperate webstorage. The easiest way to get the files is to view files over the webbrowser at a specific domain. As a lazy person who dont wants to download all lecture files its a way easier to download it via wget in a resursive usage. For not downloading the parent folders you need to ignore them just with a secound parameter. The whole webstorage is secured with an simple httpauth</p>
+<p>wget -r –no-parent –http-user=USERNAME –http-password=PASSWORD URL</p>
+<p>Thats it :)</p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/shell-magic/">shell magic</a><a href="/tags/shell/">shell</a><a href="/tags/wget/">wget</a><a href="/tags/console/">console</a></div>
+
+      
+    </footer>
+    
+    
+  </div>
+  
+</article>
+
+
+  <article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="title"><a href="/2014/08/07/2014-08-07-Etherpad-Lite-Extension-Robots/">Exclude Robots from etherpad lite</a></h1>
+  
+
+    <time class="dt-published" datetime="2014-08-06T22:00:00.000Z">
+  <span class="day">7</span><span class="month">Aug</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Etherpad lite is easy to extend via npm install ep. While extending etherpad you need to keep in mind that there are some plugins which create new public sites that are crawable by google, bing and co. As example a beloved plugin by me (<a target="_blank" rel="noopener" href="https://github.com/JohnMcLear/eplist_pads">https://github.com/JohnMcLear/eplist_pads</a>). It creates nice lists of all your pads, but it creates public searchable ids under /list and /public. To fix that is pretty easy. You need just to edit your robots.txt file under /static/robots.txt. You can find it under etherpad-light/src/static. Just add these two lines at the bottom of the file.</p>
+<p>Disallow: /list Disallow: /public</p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/javascript/">javascript</a><a href="/tags/etherpad-lite/">etherpad lite</a><a href="/tags/etherpad/">etherpad</a><a href="/tags/robots/">robots</a><a href="/tags/seo/">seo</a></div>
+
+      
+    </footer>
+    
+    
+  </div>
+  
+</article>
+
+
+  <article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="title"><a href="/2014/07/24/2014-07-24-Extending-OpenERP-POS/">Extending the OpenERP POS Module</a></h1>
+  
+
+    <time class="dt-published" datetime="2014-07-23T22:00:00.000Z">
+  <span class="day">24</span><span class="month">Jul</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>I am currently active on developing and extending the openerp point of sale extension. Didn’t get anything of mine extensions into it.. The problem? Openerp initialises all Javascript-Code after rendering the whole page and its running the user-generated code befor running its own code. I found a very small and smart way to work around this problem with a recursive timeout caller. The script is nice as easy to understand. :)</p>
+<h3 id="Source"><a href="#Source" class="headerlink" title="Source"></a>Source</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;DEBUG-MSG: Runtime-Extender start&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> intervalholder = <span class="literal">null</span>;</span><br><span class="line">intervalholder =  <span class="built_in">setInterval</span>(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(<span class="built_in">Object</span>.keys(openerp.instances).length &gt; <span class="number">0</span>)&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&quot;Found openerp.instance, load your plugins&quot;</span>);</span><br><span class="line">        openerpInstance = openerp.instances.instance0;</span><br><span class="line">        <span class="comment">//load here</span></span><br><span class="line">        openerp.yourextension(openerpInstance);</span><br><span class="line">        <span class="built_in">clearInterval</span>(intervalholder);</span><br><span class="line">        intervalholder = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;, <span class="number">1000</span>) ;</span><br><span class="line">openerp.yourextension = <span class="function"><span class="keyword">function</span>(<span class="params">instance</span>)</span>&#123;</span><br><span class="line">    <span class="keyword">var</span> <span class="built_in">module</span> = instance.pointofsale;</span><br><span class="line">    <span class="comment">//code here</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>nice and simple, mh? ;)</p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/OpenERP/">OpenERP</a><a href="/tags/OpenERP-POS-Module/">OpenERP POS Module</a><a href="/tags/OpenERP-Point-of-Sale/">OpenERP Point of Sale</a><a href="/tags/javascript/">javascript</a></div>
+
+      
+    </footer>
+    
+    
+  </div>
+  
+</article>
+
+
+  <article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="title"><a href="/2014/07/01/2014-07-01-Issues-With-Cubietruck%20copy/">Issues with Cubietruck / Cubieboard 3</a></h1>
+  
+
+    <time class="dt-published" datetime="2014-06-30T22:00:00.000Z">
+  <span class="day">1</span><span class="month">Jul</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hey everyone, I am currently setting up my cubietruck to get my personal cloud running with owncloud and services like firefox sync to backup my browsing history. I ran into some stupid things caused by ubuntu.com behaviour with hosting sources for old distributions on ports.ubunut.com. Linaro for Cubietruck runs from start with Quantal Quetzal Ubuntu, what is fine. After setting up the system , my usual behavior is, to get the lasted updates and fixes but nothing happend just 404 errors from ubuntu.com. After checking things like connection error on IPv6 and other stupid things, I check back if there is still something up for quantal. Nope, nothing in there… What now? You just need to update your /etc/apt/source.list - I uploaded my new one to 2 hosts. phcn.de (<a target="_blank" rel="noopener" href="http://paste.phcn.de/?i=1409570170">http://paste.phcn.de/?i=1409570170</a>) w8l.org (<a target="_blank" rel="noopener" href="http://paste.w8l.org/kt82xg4erqo9">http://paste.w8l.org/kt82xg4erqo9</a>)</p>
+<p>After updating your souces just type into the console apt-get update apt-get -y dist-upgrade</p>
+<p>The system-ugrade on cubietruck may take a while - for me it was around an half hour to an hour.</p>
+<p>Hope this could help some new-commers :)</p>
+<h2 id="Update-09-01-2021"><a href="#Update-09-01-2021" class="headerlink" title="Update: 09.01.2021"></a>Update: 09.01.2021</h2><p>Seems that both paste-services removed the past entries. Therefor this log entry is just for history reasons still available. </p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/Cubietruck/">Cubietruck</a><a href="/tags/Cubieboard-3/">Cubieboard 3</a><a href="/tags/Unix/">Unix</a><a href="/tags/UnixIssues/">UnixIssues</a></div>
+
+      
+    </footer>
+    
+    
+  </div>
+  
+</article>
+
+
+  <article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="title"><a href="/2014/06/26/2014-06-26-Pseudocode-Algorithms/">Pseudocode for some basic Algorithms</a></h1>
+  
+
+    <time class="dt-published" datetime="2014-06-25T22:00:00.000Z">
+  <span class="day">26</span><span class="month">Jun</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hello everyone, I am currently in my final learning phase for exams and stumbled about the topic, writing pseudocode for simple algorithms like selectsort,insertsort or bubblesort. I though about an hour of all three to get a nice and clean version done. I know there are “ready to use”-stuff on Wikipedia or other bulletin -boards… but to get an own version is somehow cool :) </p>
+<h3 id="SelectSort"><a href="#SelectSort" class="headerlink" title="SelectSort"></a>SelectSort</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">selectSort(Array a)&#123;</span><br><span class="line">    i = 0</span><br><span class="line">    l = a.length()</span><br><span class="line">    while(i &lt;length)&#123;</span><br><span class="line">        min = i</span><br><span class="line">        for(j = i+1; j &lt;= n; j++)&#123;</span><br><span class="line">            if(a[j] &lt; a[min])&#123;</span><br><span class="line">                min = j</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    a.switch(i,min)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="InsertSort"><a href="#InsertSort" class="headerlink" title="InsertSort"></a>InsertSort</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">insertSort(Array a)&#123;</span><br><span class="line">    n = a.length()</span><br><span class="line">    i = 0</span><br><span class="line">    while(i&lt;n)&#123;</span><br><span class="line">        for(j=n-1; j&gt;0; j--)&#123;</span><br><span class="line">            if(a[j-1] &gt; a[j])&#123;</span><br><span class="line">                val = a[j]</span><br><span class="line">                a[j] = a[j-1]</span><br><span class="line">                a[j-1] = val</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    i++</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="BubbleSort"><a href="#BubbleSort" class="headerlink" title="BubbleSort"></a>BubbleSort</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">bubbleSort(Array a)&#123;</span><br><span class="line">    n = a.length()</span><br><span class="line">    while(n&gt;1)&#123;</span><br><span class="line">        for(i=0; i &lt; n-1; i++)&#123;</span><br><span class="line">        if(a[i] &gt; a[i+1])&#123;</span><br><span class="line">            a.switch(i,i+1)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    n--</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/pseudocode/">pseudocode</a><a href="/tags/study-times/">study times</a><a href="/tags/study/">study</a><a href="/tags/algorithmic/">algorithmic</a><a href="/tags/fh-stralsund/">fh stralsund</a></div>
+
+      
+    </footer>
+    
+    
+  </div>
+  
+</article>
+
+
+
+<nav id="pagenavi">
+  
+    <a href="/" class="alignleft prev">Prev</a>
+  
+  
+  <div class="clearfix"></div>
+</nav></div>
+  <footer id="footer" class="inner"><div class="social alignright">
+  
+  
+  
+    <a class="github" target="_blank" rel="noopener" href="https://github.com/deb4sh" title="GitHub">GitHub</a>
+  
+  <a class="rss" href="/atom.xml" title="RSS">RSS</a>
+</div>
+<p>
+  
+  &copy; 2024 deB4SH
+  
+</p>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+<script>
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div id="phasebeam">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+
+<script src="/js/phasebeam.js"></script>
+
+</body>
+</html>

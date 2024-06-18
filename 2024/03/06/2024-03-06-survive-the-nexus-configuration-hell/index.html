@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+ <html lang="en"> 
+<head>
+  <meta charset="utf-8">
+  
+  <title>DevOpsStory - Survive the Nexus Configuration-Hell | log.out(&#34;blog&#34;)</title>
+  <meta name="author" content="deB4SH">
+
+  
+  <meta name="description" content="a journey between software and ops topics">
+  
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  <!--[if lt IE 9]><script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script><![endif]-->
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <header id="header" class="inner"><nav>
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+</nav></header>
+  <div id="content" class="inner"><article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="p-name title" itemprop="headline name">DevOpsStory - Survive the Nexus Configuration-Hell</h1>
+  
+
+    <time class="dt-published" datetime="2024-03-05T23:00:00.000Z">
+  <span class="day">6</span><span class="month">Mar</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hi all,<br>I wanted to move all my artifacts back into my homelab to be able to run it airgapped.<br>To reduce the overhead of running multiple services to achieve this goal I’ve comitted myself on running the sonatype nexus repository manager. Through their broad community support multiple package types are supported by one solution. To survive the administration configuration hell of the repository manager and store a configuration as code within my git, I opted towards writing multiple terraform modules to configure my nexus. The following blog post shall give you a broad overview how I approached the issue and explain how to use my modules for this specific usecase.</p>
+<img src="https://github.com/deB4SH/deb4sh.github.io/blob/main/source/_posts/2024-03-06-survive-the-nexus-configuration-hell/header_cropped.jpeg?raw=true" alt="logo" width="500" height="auto">
+
+
+<p><strong>Let’s survive the configuration hell!</strong><br>Nexus provides an <a target="_blank" rel="noopener" href="https://help.sonatype.com/en/rest-and-integration-api.html">integration api</a> for scripted setups which is reachable under <code>$&#123;*YOUR_NEXUS_URL*&#125;/service/rest</code>.<br>A swagger documentation is available under <code>$&#123;*YOUR_NEXUS_URL*&#125;/service/rest/swagger.json</code>. </p>
+<p>Happily enough <a target="_blank" rel="noopener" href="https://registry.terraform.io/namespaces/amartingarcia">amartin</a> provides a <a target="_blank" rel="noopener" href="https://registry.terraform.io/modules/terraform-nexus-modules/repository/nexus/latest">nexus provider</a> for configuring nexus via terraform including a good documentation how to work with this provider.</p>
+<blockquote>
+<p>To store credentials generated within the module I’ll use the bitwarden provider to access my vault and store them there accordingly.<br>There is a good documentation and well written provider available under the following <a target="_blank" rel="noopener" href="https://registry.terraform.io/providers/maxlaverse/bitwarden/latest/docs">link</a></p>
+</blockquote>
+<p>As first step lets configure all used providers in this blog post within the <code>main.tf</code>.<br>We are using the nexus provider, a random provider for password generation and as already mention within the note a bitwarden provider to store the generated passwords.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">terraform &#123;</span><br><span class="line">  required_providers &#123;</span><br><span class="line">    nexus = &#123;</span><br><span class="line">      source = &quot;datadrivers/nexus&quot;</span><br><span class="line">      version = &quot;2.1.0&quot;</span><br><span class="line">    &#125;</span><br><span class="line">    random = &#123;</span><br><span class="line">      source = &quot;hashicorp/random&quot;</span><br><span class="line">      version = &quot;3.6.0&quot;</span><br><span class="line">    &#125;</span><br><span class="line">    bitwarden = &#123;</span><br><span class="line">      source  = &quot;maxlaverse/bitwarden&quot;</span><br><span class="line">      version = &quot;&gt;= 0.7.0&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Following the declaration of all required providers is the instanciation of these with the relevant variables to configure them accordingly.</p>
+<blockquote>
+<p>This guide references the nexus directly within a local network. There is no trusted certificate available for nexus at this point. If you are planning to run this approach against a publically available nexus please configure the insecure flag within the nexus provider accordingly.</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">provider &quot;random&quot; &#123;</span><br><span class="line">  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">provider &quot;nexus&quot; &#123;</span><br><span class="line">  insecure = true</span><br><span class="line">  username = var.nexus.username</span><br><span class="line">  password = var.nexus.password</span><br><span class="line">  url      = var.nexus.url</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">provider &quot;bitwarden&quot; &#123;</span><br><span class="line">  email           = var.bitwarden.email</span><br><span class="line">  master_password = var.bitwarden.master_password</span><br><span class="line">  client_id       = var.bitwarden.client_id</span><br><span class="line">  client_secret   = var.bitwarden.client_secret</span><br><span class="line">  server          = var.bitwarden.server</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>To externalize all sensetive credentials it is advised to create a specific tfvars for each environment. The general <code>variables.tf</code> which follows the shown example may look like the following block.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">variable &quot;nexus&quot; &#123;</span><br><span class="line">  type = object(&#123;</span><br><span class="line">    username = string</span><br><span class="line">    password = string</span><br><span class="line">    url = string</span><br><span class="line">  &#125;)</span><br><span class="line">  sensitive = true</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">variable &quot;bitwarden&quot; &#123;</span><br><span class="line">  type = object(&#123;</span><br><span class="line">    email = string</span><br><span class="line">    master_password = string</span><br><span class="line">    server = string</span><br><span class="line">    client_id = string</span><br><span class="line">    client_secret = string</span><br><span class="line">  &#125;)</span><br><span class="line">  sensitive = true</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>An according <code>development.tfvars</code> may look like.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">nexus=&#123;</span><br><span class="line">    username=&quot;local-admin&quot;</span><br><span class="line">    password=&quot;awesome#Super.Password!6576&quot;</span><br><span class="line">    url=&quot;https://nexus.local.lan&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">bitwarden=&#123;</span><br><span class="line">    email=&quot;svc.user.nexus@local.lan&quot;</span><br><span class="line">    master_password=&quot;my#Awesome.Master!Password&quot;</span><br><span class="line">    client_id=&quot;user.1233-123123-123123-123&quot;</span><br><span class="line">    client_secret=&quot;1K&#123;....&#125;&#125;zB&quot;</span><br><span class="line">    server=&quot;https://keyvault.local.lan&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>With these steps everything groundwork related is done and you are now good to go for the implementation of your configuration. </p>
+<p>So lets start with implementing a hosted docker repository, shall we?</p>
+<p>Create a new directory called <code>modules</code> in the root of your project and create a new file called <code>providers.tf</code> inside it.<br>It would also be possible to reuse the provider from your base terraform code but if you want to externalize the module it may be usefule to also externalize the providers.</p>
+<p>Within the <code>providers.tf</code> file add the following content:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">terraform &#123;</span><br><span class="line">  required_providers &#123;</span><br><span class="line">    nexus = &#123;</span><br><span class="line">      source = &quot;datadrivers/nexus&quot;</span><br><span class="line">      version = &quot;2.1.0&quot;</span><br><span class="line">    &#125;</span><br><span class="line">    random = &#123;</span><br><span class="line">      source = &quot;hashicorp/random&quot;</span><br><span class="line">      version = &quot;3.6.0&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>As next step we need to create a <code>variables.tf</code> to configure our required variables for this setup.<br>Each registry requires a name, a port and an isOnline flag.<br>A blobStoreName is required to configure final storage environment that is used on your host.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">variable &quot;name&quot; &#123;</span><br><span class="line">    type = string</span><br><span class="line">    description = &quot;Name of the docker registry&quot;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">variable &quot;isOnline&quot; &#123;</span><br><span class="line">    type = bool</span><br><span class="line">    default = true</span><br><span class="line">    description = &quot;Toggle switch to enable or disable online usage of this repository&quot;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">variable &quot;port&quot; &#123;</span><br><span class="line">    type = string</span><br><span class="line">    description = &quot;Port to announce service on&quot;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">variable &quot;blobStoreName&quot; &#123;</span><br><span class="line">    type = string</span><br><span class="line">    default = &quot;default&quot;</span><br><span class="line">    description = &quot;Blob Storage wihin nexus to use&quot;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>After an successfull deployment we want to extract some configured values like the username of the read user and required password.<br>For this please add and configure the <code>outputs.tf</code> file:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">output &quot;pull-user&quot; &#123;</span><br><span class="line">    value = nexus_security_user.pull-user.userid</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">output &quot;pull-user-pw&quot; &#123;</span><br><span class="line">    value = random_password.pull-user-password.result</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">output &quot;push-user&quot; &#123;</span><br><span class="line">    value = nexus_security_user.push-user.userid</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">output &quot;push-user-pw&quot; &#123;</span><br><span class="line">    value = random_password.push-user-password.result</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Sources"><a href="#Sources" class="headerlink" title="Sources"></a>Sources</h5><ul>
+<li><a target="_blank" rel="noopener" href="https://registry.terraform.io/modules/terraform-nexus-modules/repository/nexus/latest">Terraform Provider by amartingarcia</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/deB4SH/terraform-nexus-docker-module">Terraform Nexus Hosted Docker Module</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/deB4SH/terraform-nexus-apt-module">Terraform Nexus Hosted APT Module</a></li>
+</ul>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/devops/">devops</a><a href="/tags/terraform/">terraform</a><a href="/tags/sonatype-nexus/">sonatype nexus</a><a href="/tags/nexus/">nexus</a><a href="/tags/tf/">tf</a></div>
+
+      
+    </footer>
+    
+      
+
+    
+    
+  </div>
+  
+</article>
+</div>
+  <footer id="footer" class="inner"><div class="social alignright">
+  
+  
+  
+    <a class="github" target="_blank" rel="noopener" href="https://github.com/deb4sh" title="GitHub">GitHub</a>
+  
+  <a class="rss" href="/atom.xml" title="RSS">RSS</a>
+</div>
+<p>
+  
+  &copy; 2024 deB4SH
+  
+</p>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+<script>
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div id="phasebeam">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+
+<script src="/js/phasebeam.js"></script>
+
+</body>
+</html>

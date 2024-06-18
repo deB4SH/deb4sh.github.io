@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+ <html lang="en"> 
+<head>
+  <meta charset="utf-8">
+  
+  <title>Kubernetes - Kustomize up your Helm chart | log.out(&#34;blog&#34;)</title>
+  <meta name="author" content="deB4SH">
+
+  
+  <meta name="description" content="a journey between software and ops topics">
+  
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  <!--[if lt IE 9]><script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script><![endif]-->
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <header id="header" class="inner"><nav>
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+</nav></header>
+  <div id="content" class="inner"><article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="p-name title" itemprop="headline name">Kubernetes - Kustomize up your Helm chart</h1>
+  
+
+    <time class="dt-published" datetime="2023-01-29T23:00:00.000Z">
+  <span class="day">30</span><span class="month">Jan</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hi all,<br>it’s been some time since I wrote my last article here. I switched jobs, started reading a lot more, worked on different projects so that blogging came way to short.<br>With the new year I want to try to write at least a monthly entry with one new thing I learned and want to share.<br>The following post describes the helm chart capabilities of kustomize and how to use it in your workflow.</p>
+<p>This article is not focused on the topic if templates are a good thing or how to template with kustomize. Feel free to leave a comment over in mastodon: @<a href="mailto:&#x64;&#101;&#98;&#52;&#x73;&#104;&#64;&#104;&#x61;&#99;&#x68;&#121;&#100;&#x65;&#114;&#x6d;&#46;&#x69;&#x6f;">&#x64;&#101;&#98;&#52;&#x73;&#104;&#64;&#104;&#x61;&#99;&#x68;&#121;&#100;&#x65;&#114;&#x6d;&#46;&#x69;&#x6f;</a></p>
+<h1 id="Motivation"><a href="#Motivation" class="headerlink" title="Motivation"></a>Motivation</h1><p>From time to time it is nessecary to edit and helm-chart further than the estimated approach of the original author of one helmchart.<br>A common usecase is editing the service afterwards to fit your needs. I often need to patch those after a deployment to append loadbalancer configuration or the ip that should be used. This is often a two step approach by installing the helm chart first and apply the manifest with patches afterwards.<br>An another example could be the overlaying of values for different environments. </p>
+<p>With the <a target="_blank" rel="noopener" href="https://github.com/kubernetes-sigs/kustomize/blob/master/examples/chart.md">helmChart</a> and the Helm Chart Inflation Generator you can unpack the helm chart withing kustomize and handle the resulting manifests directly.</p>
+<h1 id="How-to-do"><a href="#How-to-do" class="headerlink" title="How to do"></a>How to do</h1><p>For demonstation purposes I’ve set up a kustomized helm installation for victoria metrics under the following <a target="_blank" rel="noopener" href="https://github.com/deB4SH/Kustomize-Victoria-Metrics">link</a>.</p>
+<p>Everything starts with a <em>HelmChartInflationGenerator</em> which is found under <code>/base/*/helmrelease.yaml</code>.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">builtin</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">HelmChartInflationGenerator</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">victoria-metrics-cluster</span></span><br><span class="line"><span class="attr">releaseName:</span> <span class="string">victoria-metrics-cluster</span></span><br><span class="line"><span class="attr">name:</span> <span class="string">victoria-metrics-cluster</span></span><br><span class="line"><span class="attr">version:</span> <span class="number">0.9</span><span class="number">.52</span></span><br><span class="line"><span class="attr">repo:</span> <span class="string">https://victoriametrics.github.io/helm-charts/</span></span><br><span class="line"><span class="attr">valuesInline:</span> &#123;&#125;</span><br><span class="line"><span class="attr">IncludeCRDs:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">namespace:</span> <span class="string">victoria-metrics</span></span><br></pre></td></tr></table></figure>
+
+<p>The generation describes the location of the victoria metrics helm chart and every relevant metadata with it like the name, version, values and namespace.<br>The next step is to set up an aggregator for all your Helm Charts and patch all values for installation.<br>This is done within the <code>/env/*/kustomization.yaml</code>.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">kustomize.config.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Kustomization</span></span><br><span class="line"></span><br><span class="line"><span class="attr">namespace:</span> <span class="string">victoria-metrics</span></span><br><span class="line"></span><br><span class="line"><span class="attr">resources:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">../../base/victoria-metrics-cluster</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">../../base/victoria-metrics-agent</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">../../base/grafana</span></span><br><span class="line"></span><br><span class="line"><span class="attr">patchesStrategicMerge:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">patches/patch-cluster-values.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">patches/patch-agent-values.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">patches/patch-grafana-values.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>The kustomization collects all configured bases and patches their values accordingly.<br>Inside the following listing is the patch described for the victoria metrics cluster.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">builtin</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">HelmChartInflationGenerator</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">victoria-metrics-cluster</span></span><br><span class="line"><span class="attr">valuesInline:</span> </span><br><span class="line">  <span class="attr">rbac:</span></span><br><span class="line">    <span class="attr">create:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">pspEnabled:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">vmselect:</span></span><br><span class="line">    <span class="attr">replicaCount:</span> <span class="number">1</span></span><br><span class="line">    <span class="attr">podAnnotations:</span></span><br><span class="line">        <span class="attr">prometheus.io/scrape:</span> <span class="string">&quot;true&quot;</span></span><br><span class="line">        <span class="attr">prometheus.io/port:</span> <span class="string">&quot;8481&quot;</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">vminsert:</span></span><br><span class="line">    <span class="attr">replicaCount:</span> <span class="number">1</span></span><br><span class="line">    <span class="attr">podAnnotations:</span></span><br><span class="line">        <span class="attr">prometheus.io/scrape:</span> <span class="string">&quot;true&quot;</span></span><br><span class="line">        <span class="attr">prometheus.io/port:</span> <span class="string">&quot;8480&quot;</span></span><br><span class="line">    <span class="attr">extraArgs:</span></span><br><span class="line">      <span class="attr">envflag.enable:</span> <span class="string">&quot;true&quot;</span></span><br><span class="line">      <span class="attr">envflag.prefix:</span> <span class="string">VM_</span></span><br><span class="line">      <span class="attr">loggerFormat:</span> <span class="string">json</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">vmstorage:</span></span><br><span class="line">    <span class="attr">replicaCount:</span> <span class="number">1</span></span><br><span class="line">    <span class="attr">persistentVolume:</span></span><br><span class="line">      <span class="attr">storageClass:</span> <span class="string">longhorn</span></span><br><span class="line">    <span class="attr">podAnnotations:</span></span><br><span class="line">        <span class="attr">prometheus.io/scrape:</span> <span class="string">&quot;true&quot;</span></span><br><span class="line">        <span class="attr">prometheus.io/port:</span> <span class="string">&quot;8482&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Inline values provide an overlay for the default values that are available withing the helm chart.<br>This patching mechanism can be used to overlay the values even further if installations share the same base. </p>
+<p>As last step we need to instruct kustomize to generate the ressources from the configured helmchart and values.<br>This could be done with the following listing.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">kustomize.config.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Kustomization</span></span><br><span class="line"></span><br><span class="line"><span class="attr">namespace:</span> <span class="string">victoria-metrics</span></span><br><span class="line"></span><br><span class="line"><span class="attr">generators:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">../../env/homelab/</span></span><br></pre></td></tr></table></figure>
+
+<p>The generator points towards the previously described environment configuration.<br>When run with <code>kustomize build --enable-helm</code> you should receive the rendered helm chart as kubernetes manifests.</p>
+<h1 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h1><p>With the <code>helmchart</code> and <code>HelmChartInflationGenerator</code> we are able to render helmcharts nativly in kustomize.<br>Due to the general patching mechanism with kustomize we can manipulate the resulting manifests with ease before everything gets deployed towards the cluster.</p>
+<p>The generator needs some work… for example is the <code>--enable-helm</code> command line dependency something that a lot of people are going to script away.<br>There are also some heafty changes located within the milestone <a target="_blank" rel="noopener" href="https://github.com/kubernetes-sigs/kustomize/milestone/9">v5.0.0</a> for kustomize.</p>
+<p>IMHO: It’s a nice progress for kustomize to allow helm charts directly within my workflow. I can remove one application from build-stack to rollout services to my clusters.</p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/kubernetes/">kubernetes</a><a href="/tags/kustomize/">kustomize</a><a href="/tags/helm-chart/">helm chart</a><a href="/tags/helm/">helm</a><a href="/tags/k8s/">k8s</a></div>
+
+      
+    </footer>
+    
+      
+
+    
+    
+  </div>
+  
+</article>
+</div>
+  <footer id="footer" class="inner"><div class="social alignright">
+  
+  
+  
+    <a class="github" target="_blank" rel="noopener" href="https://github.com/deb4sh" title="GitHub">GitHub</a>
+  
+  <a class="rss" href="/atom.xml" title="RSS">RSS</a>
+</div>
+<p>
+  
+  &copy; 2024 deB4SH
+  
+</p>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+<script>
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div id="phasebeam">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+
+<script src="/js/phasebeam.js"></script>
+
+</body>
+</html>

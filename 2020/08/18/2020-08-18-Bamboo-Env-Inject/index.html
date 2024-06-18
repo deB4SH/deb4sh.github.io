@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+ <html lang="en"> 
+<head>
+  <meta charset="utf-8">
+  
+  <title>Bamboo CI Server Environment Variable Inject | log.out(&#34;blog&#34;)</title>
+  <meta name="author" content="deB4SH">
+
+  
+  <meta name="description" content="a journey between software and ops topics">
+  
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  <!--[if lt IE 9]><script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script><![endif]-->
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <header id="header" class="inner"><nav>
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+</nav></header>
+  <div id="content" class="inner"><article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="p-name title" itemprop="headline name">Bamboo CI Server Environment Variable Inject</h1>
+  
+
+    <time class="dt-published" datetime="2020-08-17T22:00:00.000Z">
+  <span class="day">18</span><span class="month">Aug</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hi there! </p>
+<p>Due to a new project at work I got into a deep dive with the <a target="_blank" rel="noopener" href="https://www.atlassian.com/de/software/bamboo">bamboo build server</a> from atlassian. In around 4 months working as devops and ops engineer for the new project with bamboo, I came to the point that bamboo still needs a lot of work to be competetive with <a target="_blank" rel="noopener" href="https://www.jenkins.io/">jenkins</a> or something like gitlab-ci or github-ci. </p>
+<p>While developing the pipeline for releases, an issue came up that is quite difficult to resolve via bamboo. The issue was: exporting the version number of an branch and setting the maven version number aftwards based on that extracted number. Within jenkins I would extract the version number inside the relevant stage and inject it into the environment.<br>A snippet to do this task could look like the following</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">stage(&#x27;setVerion: release-branch&#x27;) &#123;</span><br><span class="line">    when &#123;</span><br><span class="line">        branch &#x27;release/*&#x27;</span><br><span class="line">    &#125;</span><br><span class="line">    environment &#123;</span><br><span class="line">        BRANCHVERSION = sh(</span><br><span class="line">                script: &quot;echo $&#123;env.BRANCH_NAME&#125; | sed -E &#x27;s/release\\/([0-9a-zA-Z.\\-]+)/\\1/&#x27;&quot;,</span><br><span class="line">                returnStdout: true</span><br><span class="line">        ).trim()</span><br><span class="line">    &#125;</span><br><span class="line">    steps &#123;</span><br><span class="line">        echo &#x27;Setting release version&#x27;</span><br><span class="line">        echo &quot;$&#123;BRANCHVERSION&#125;&quot;</span><br><span class="line">        sh &#x27;mvn versions:set -DnewVersion=$&#123;BRANCHVERSION&#125; -f ./pom.xml&#x27;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Within the world of bamboo thats not that quite easy. </p>
+<h2 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h2><p>To achieve the same we need to split up the simple step into 4 parts. </p>
+<p>First we need a script to extract the version number and prepare it in some kind of file to inject it afterwards into the build context. Lets take a look into the following script example. </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/usr/bin/env sh</span></span><br><span class="line">currentBranch=$(echo $bamboo_planRepository_default_branchName)</span><br><span class="line">if [[ $currentBranch == *&quot;release/&quot;* ]]; then</span><br><span class="line">    export versionNumber=$(echo $currentBranch | sed -E &#x27;s/release\/([0-9a-zA-Z.\\-]+)/\1/&#x27;)</span><br><span class="line">else</span><br><span class="line">  export versionNumber=$(echo &quot;0.0.0-SNAPSHOT&quot;)</span><br><span class="line">fi</span><br><span class="line">echo &quot;CONTAINER-VERSIONNUMBER: &quot; $versionNumber</span><br><span class="line">echo &quot;Preparing versionnumber to inject into bamboo&quot;</span><br><span class="line">VALUE=&quot;versionNumber=$versionNumber&quot;</span><br><span class="line">echo $VALUE &gt;&gt; .version.cfg</span><br><span class="line">echo &quot;Created .version.cfg under the root directory&quot;</span><br></pre></td></tr></table></figure>
+<p>Within this script we’re using the provided bamboo variable for branchnames inside a multibranch pipeline. Extracting the version number if this is a <em>release</em> branch, else we’re setting 0.0.0-SNAPSHOT as version number.<br>After extracting the versionnumber or setting a development number we are storing the information inside a cfg file that serves as temporary data storage to import data from.<br>With the following step we are going to import the data into the build context.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Task <span class="title">exportBranchVersionNumber</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ScriptTask()</span><br><span class="line">            .description(<span class="string">&quot;Exports the Branch-Version into an environment variable&quot;</span>)</span><br><span class="line">            .interpreterBinSh()</span><br><span class="line">            .inlineBody(<span class="string">&quot;./version.sh&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> InjectVariablesTask <span class="title">injectVersionnumberIntoBamboo</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> InjectVariablesTask()</span><br><span class="line">            .path(<span class="string">&quot;.version.cfg&quot;</span>)</span><br><span class="line">            .namespace(<span class="string">&quot;inject&quot;</span>)</span><br><span class="line">            .scope(InjectVariablesScope.LOCAL);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>After injecting everything into the local scope of the current build context of the bamboo build server you easly can use the variables again over the reference schema. Just keep in mind that you need to add bamboo.inject infront to aquire the correct information.</p>
+<p>The next step just shows how to use this in a real world example.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> MavenTask <span class="title">changeVersion</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> MavenTask()</span><br><span class="line">            .description(<span class="string">&quot;Updates and changes the version number for all containers&quot;</span>)</span><br><span class="line">            .goal(<span class="string">&quot;versions:set -DnewVersion=$&#123;bamboo.inject.versionNumber&#125; -f pom.xml -s settings.xml versions:update-child-modules&quot;</span>)</span><br><span class="line">            .hasTests(<span class="keyword">false</span>)</span><br><span class="line">            .version3()</span><br><span class="line">            .jdk(<span class="string">&quot;JDK 1.8&quot;</span>)</span><br><span class="line">            .executableLabel(<span class="string">&quot;Maven-3.3.9&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>Bamboo needs a lot of scripting magic to get “well-known” pipeline steps running. Currently I am refining even more components of the global build file. Stay tuned for more bamboo guide in future.</p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/shell/">shell</a><a href="/tags/ci/">ci</a><a href="/tags/cd/">cd</a><a href="/tags/bamboo/">bamboo</a><a href="/tags/bamboo-ci-server/">bamboo ci server</a><a href="/tags/bambo-ci/">bambo ci</a><a href="/tags/maven-task-bamboo/">maven task bamboo</a><a href="/tags/script/">script</a></div>
+
+      
+    </footer>
+    
+      
+
+    
+    
+  </div>
+  
+</article>
+</div>
+  <footer id="footer" class="inner"><div class="social alignright">
+  
+  
+  
+    <a class="github" target="_blank" rel="noopener" href="https://github.com/deb4sh" title="GitHub">GitHub</a>
+  
+  <a class="rss" href="/atom.xml" title="RSS">RSS</a>
+</div>
+<p>
+  
+  &copy; 2024 deB4SH
+  
+</p>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+<script>
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div id="phasebeam">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+
+<script src="/js/phasebeam.js"></script>
+
+</body>
+</html>

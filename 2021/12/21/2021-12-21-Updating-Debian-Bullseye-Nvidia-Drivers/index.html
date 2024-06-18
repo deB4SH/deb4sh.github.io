@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+ <html lang="en"> 
+<head>
+  <meta charset="utf-8">
+  
+  <title>Debian Bullseye - Update to latest nvidia drivers | log.out(&#34;blog&#34;)</title>
+  <meta name="author" content="deB4SH">
+
+  
+  <meta name="description" content="a journey between software and ops topics">
+  
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  <!--[if lt IE 9]><script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script><![endif]-->
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <header id="header" class="inner"><nav>
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+</nav></header>
+  <div id="content" class="inner"><article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="p-name title" itemprop="headline name">Debian Bullseye - Update to latest nvidia drivers</h1>
+  
+
+    <time class="dt-published" datetime="2021-12-20T23:00:00.000Z">
+  <span class="day">21</span><span class="month">Dec</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hi all,<br>due to the awesome progress with proton and the integration in steam.. lets be honest… there is no need for Windows if you are not playing games that are competetiv nor secured via kernel-level anticheat. I’m also working most of my time with containers and kubernetes environments. Integrations of those two in windows are more or less not existing. Due to the wsl it gets better but it’s not quite native yet. Switching to an open operating system was the next logical step in my mind sooo.. here we are. </p>
+<p>Due to the being of debian the packages are a bit dated and considered stable, which is fine for everyday software but not that amazing if you want to get your new gpu working. Debian is currently provinding on all branches a 470.x.y version for nvidia-driver, which is a bit dated. On date of writing this we are currently by 495.x.y.</p>
+<p>With the following steps you can update your graphic card drivers from 470.x.y to 495.x.y.<br>Keep in mind.. <em>READ BEFORE COPY PASTING</em>. </p>
+<h2 id="Download-the-latest-drivers"><a href="#Download-the-latest-drivers" class="headerlink" title="Download the latest drivers:"></a>Download the latest drivers:</h2><p>Downloading the latest is easiest via an existing browser and the unix driver archive of nvidia.<br>Simply head towards: <a target="_blank" rel="noopener" href="https://www.nvidia.com/en-us/drivers/unix/">https://www.nvidia.com/en-us/drivers/unix/</a> and checkout the latest feature branch version for your system. In most cases x86/amd64.</p>
+<p>Store it somewhere you are able to remember. For example: /home/your_user/nvidia/NVIDIA-Linux-x86_64-495.46.run</p>
+<h2 id="Uninstall-existing-drivers-if-available"><a href="#Uninstall-existing-drivers-if-available" class="headerlink" title="Uninstall existing drivers (if available)"></a>Uninstall existing drivers (if available)</h2><p>Depending if this is a system you’ve already used and installed drivers from any debian repository uninstall them. If you keep them installed the kernel-modules are still available and loaded after an reboot, which makes installing the driver directly from nvidia  impossible.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get remove --purge <span class="string">&#x27;^nvidia-.*&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Preparing-for-reboot"><a href="#Preparing-for-reboot" class="headerlink" title="Preparing for reboot!"></a>Preparing for reboot!</h2><p>Next on the list: preparing the system for the reboot into the multi-user.target.<br>To install the nvidia driver directly you need to setup serveral things.</p>
+<p>Install headers for your current kernel, build-essentials, libglvnd-dev and pkg-config.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt install linux-headers-$(uname -r) build-essential libglvnd-dev pkg-config</span><br></pre></td></tr></table></figure>
+
+<p>Also create, if not existing, a new file under <em>/etc/modprobe.d/blacklist-nouveau.conf</em> with following content.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">blacklist nouveau</span><br><span class="line">options nouveau modeset=0</span><br></pre></td></tr></table></figure>
+<p>With this you are blacklisting nouveau drivers. </p>
+<p>Next we need to update kernel-initramfs.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update-initramfs -u</span><br></pre></td></tr></table></figure>
+
+<p>At last we need to setup the default target at boot and reboot the system.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl set-default multi-user.target</span><br><span class="line">reboot now</span><br></pre></td></tr></table></figure>
+
+<h2 id="Install-Nvidia-Drivers"><a href="#Install-Nvidia-Drivers" class="headerlink" title="Install Nvidia Drivers"></a>Install Nvidia Drivers</h2><p>After a reboot you should be greeted with login prompt. Enter your credentials.<br>Next head towards your created folder with the driver inside. Execute the following inside.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash NVIDIA-Linux-x86_64-495.46.run</span><br></pre></td></tr></table></figure>
+
+<p>If executed properly, you should see and loading bar growing. After a short while your should be greeted with questions. </p>
+<ul>
+<li>Install NVIDIA’s 32-bit compatibility libraries?</li>
+<li>Would you like to run the nvidia-xconfig utility to automatically update your X configuration file so that the NVIDIA X driver will be used when you restart X? </li>
+</ul>
+<p>Both questions should be answered with yes. </p>
+<p>You should see a process bar that indicates the status of building your new kernel with the nvidia driver bundled. After it finished everything should be set up and ready to go.<br>You’ve installed the driver manually.</p>
+<p>The last step is to return to an graphical interface after boot, which is acomplished by executing the following command.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl set-default graphical.target</span><br></pre></td></tr></table></figure>
+
+<p>After an fresh reboot you should be greeted by your desktop environment / login interface.</p>
+<p>You can check if the correct driver is running with <code>nvidia-smi</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">/home/b4sh [core@debian] [13:55]</span><br><span class="line">&gt; nvidia-smi</span><br><span class="line">Tue Dec 21 13:55:38 2021       </span><br><span class="line">+-----------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 495.46       Driver Version: 495.46       CUDA Version: 11.5     |</span><br><span class="line">|-------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                               |                      |               MIG M. |</span><br><span class="line">|===============================+======================+======================|</span><br><span class="line">|   0  NVIDIA GeForce ...  Off  | 00000000:1C:00.0  On |                  N/A |</span><br><span class="line">|  0%   46C    P0    41W / 260W |    962MiB /  7979MiB |      6%      Default |</span><br><span class="line">|                               |                      |                  N/A |</span><br><span class="line">+-------------------------------+----------------------+----------------------+</span><br></pre></td></tr></table></figure>
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/gnulinux/">gnulinux</a><a href="/tags/debian/">debian</a><a href="/tags/debian-bulleye/">debian bulleye</a><a href="/tags/nvidia/">nvidia</a><a href="/tags/nvidia-driver/">nvidia driver</a></div>
+
+      
+    </footer>
+    
+      
+
+    
+    
+  </div>
+  
+</article>
+</div>
+  <footer id="footer" class="inner"><div class="social alignright">
+  
+  
+  
+    <a class="github" target="_blank" rel="noopener" href="https://github.com/deb4sh" title="GitHub">GitHub</a>
+  
+  <a class="rss" href="/atom.xml" title="RSS">RSS</a>
+</div>
+<p>
+  
+  &copy; 2024 deB4SH
+  
+</p>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+<script>
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div id="phasebeam">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+
+<script src="/js/phasebeam.js"></script>
+
+</body>
+</html>

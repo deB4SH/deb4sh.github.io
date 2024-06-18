@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+ <html lang="en"> 
+<head>
+  <meta charset="utf-8">
+  
+  <title>Homelab Writeup - MetalLB Custom Resource Configuration | log.out(&#34;blog&#34;)</title>
+  <meta name="author" content="deB4SH">
+
+  
+  <meta name="description" content="a journey between software and ops topics">
+  
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  <!--[if lt IE 9]><script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script><![endif]-->
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <header id="header" class="inner"><nav>
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+</nav></header>
+  <div id="content" class="inner"><article class="h-entry post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="p-name title" itemprop="headline name">Homelab Writeup - MetalLB Custom Resource Configuration</h1>
+  
+
+    <time class="dt-published" datetime="2023-04-23T22:00:00.000Z">
+  <span class="day">24</span><span class="month">Apr</span>
+</time>
+  </header>
+  <div class="e-content entry-content">
+    
+      <p>Hi all,<br>with the version 0.13.2 of metallb comes a change in regard to layer2 ip announcements.<br>Therefor it is now required to switch from the old configmap setup to a custom resource setup.<br>To document my upgrade steps - here is a small write-up of things required to get metallb running again.</p>
+<h1 id="Upgrade-Guide"><a href="#Upgrade-Guide" class="headerlink" title="Upgrade Guide"></a>Upgrade Guide</h1><p>This guide assumes that you had been running an older version of metallb with a configmap for address pool configuration similar to the following listing:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">metallb-system</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">config</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">config:</span> <span class="string">|</span></span><br><span class="line"><span class="string">    address-pools:</span></span><br><span class="line"><span class="string">    - name: default</span></span><br><span class="line"><span class="string">      protocol: layer2</span></span><br><span class="line"><span class="string">      addresses:</span></span><br><span class="line"><span class="string">      - 192.168.1.100-192.168.1.195</span></span><br><span class="line"><span class="string">      avoid-buggy-ips: true</span></span><br></pre></td></tr></table></figure>
+<p>This configuration can be removed from the deployment and will be replaced with the following two custom resource manifests.</p>
+<p>At first, it is important to create an IPAddressPool manifest which provides the address range accordingly to the previous configmap configuration.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">metallb.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">IPAddressPool</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span>  <span class="string">default-pool</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">metallb-system</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">addresses:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.100</span><span class="number">-192.168</span><span class="number">.1</span><span class="number">.240</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>NOTE: Keep in mind that you need top change the addresses range accordingly to your setup.</p>
+</blockquote>
+<p>Next, it is required to set up an L2Advertisement to announce all used IP to your local network.<br>This advertisement references the ipAddressPools directly within it specification and can be named something different.<br>To keep things in line, I named it accordingly to the IPAddressPool.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">metallb.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">L2Advertisement</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">default-pool</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">metallb-system</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">ipAddressPools:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">default-pool</span></span><br></pre></td></tr></table></figure>
+
+<p>After checking in these manifests, metallb should pick them up and announce all used IP accordingly. </p>
+
+    
+    
+    <footer class="meta">
+      
+      
+  <div class="tags">
+<a href="/tags/devops/">devops</a><a href="/tags/kubernetes/">kubernetes</a><a href="/tags/kustomize/">kustomize</a><a href="/tags/k8s/">k8s</a><a href="/tags/metallb/">metallb</a><a href="/tags/loadbalancer/">loadbalancer</a><a href="/tags/homelab-writeup/">homelab writeup</a></div>
+
+      
+    </footer>
+    
+      
+
+    
+    
+  </div>
+  
+</article>
+</div>
+  <footer id="footer" class="inner"><div class="social alignright">
+  
+  
+  
+    <a class="github" target="_blank" rel="noopener" href="https://github.com/deb4sh" title="GitHub">GitHub</a>
+  
+  <a class="rss" href="/atom.xml" title="RSS">RSS</a>
+</div>
+<p>
+  
+  &copy; 2024 deB4SH
+  
+</p>
+<div class="clearfix"></div></footer>
+  
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+
+
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+<script>
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div id="phasebeam">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+
+<script src="/js/phasebeam.js"></script>
+
+</body>
+</html>
