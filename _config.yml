@@ -99,6 +99,14 @@ ignore:
 ## Themes: https://hexo.io/themes/
 theme: phase
 
+archive_generator:
+  enabled: true
+  per_page: 0
+  yearly: true
+  monthly: true
+  daily: false
+  order_by: -date
+
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
