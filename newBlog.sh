@@ -1,0 +1,1 @@
+ podman run -v $(pwd):/site:z ghcr.io/deb4sh/docker-jekyll:sha-6da81e9 new --force . 
