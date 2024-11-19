@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Homelab Writeup - MetalLB Custom Resource Configuration
+title: MetalLB Custom Resource Configuration
 date: 2023-04-24 00:00 
 categories: 
 - Kubernetes

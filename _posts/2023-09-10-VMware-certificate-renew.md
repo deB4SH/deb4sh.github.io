@@ -1,6 +1,6 @@
 ---
 layout: post
-title: VMWare Tanzu - Cluster Certificate Renewal
+title: VMWare Tanzu Certificate Renewal
 date: 2023-09-10 00:00 
 categories: 
 - VMWare

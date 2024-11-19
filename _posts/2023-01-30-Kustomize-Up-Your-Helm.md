@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Kubernetes - Kustomize up your Helm chart
+title: Kustomize up your Helm chart
 date: 2023-01-30 00:00 
 categories: 
 - Kubernetes

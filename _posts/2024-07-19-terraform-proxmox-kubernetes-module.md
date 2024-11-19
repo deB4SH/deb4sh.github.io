@@ -3,7 +3,7 @@ layout: post
 title: Automating Kubernetes on Proxmox
 date: 2024-07-19 00:00 
 categories: 
-- Infrastructure as Code
+- InfrastructureAsCode
 tags:
 - terraform
 - opentofu

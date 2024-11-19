@@ -1,6 +1,6 @@
 ---
 layout: post
-title: DevOpsStories - ArgoCD Multi-Cluster Deployments
+title: ArgoCD Multi-Cluster Deployments
 date: 2023-03-22 00:00 
 comments: false 
 categories: 

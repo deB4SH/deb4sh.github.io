@@ -4,7 +4,7 @@ title: Nexus Configuration Hell
 date: 2024-06-17 00:00 
 comments: false 
 categories: 
-- Infrastructure as Code
+- InfrastructureAsCode
 tags:
 - terraform
 - sonatype nexus
@@ -13,7 +13,7 @@ tags:
 - devops
 image: 
   path: /assets/2024-03-06-survive-the-nexus-configuration-hell/header_cropped.jpeg
-  
+
 ---
 
 Hi all,

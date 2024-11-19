@@ -1,6 +1,6 @@
 ---
 layout: post
-title: DevOpsStories - Victoria Metrics Setup
+title: Homelab Victoria Metrics Setup
 date: 2023-04-06 00:00 
 categories: 
 - Kubernetes
