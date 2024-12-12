@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Building a simple internal developer platform with ArgoCD
-date: 2024-12-01 00:00 
+date: 2024-12-12 00:00 
 categories: 
 - InfrastructureAsCode
 tags:
