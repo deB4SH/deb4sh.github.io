@@ -4,12 +4,8 @@ title: Extending the OpenERP POS Module
 date: 2014-07-24 00:00
 categories:
 - Development
-- OpenERP
 tags:
-- OpenERP
-- OpenERP POS Module
-- OpenERP Point of Sale
-- javascript
+- Javascript
 ---
 
 I am currently active on developing and extending the openerp point of sale extension. Didn't get anything of mine extensions into it.. The problem? Openerp initialises all Javascript-Code after rendering the whole page and its running the user-generated code befor running its own code. I found a very small and smart way to work around this problem with a recursive timeout caller. The script is nice as easy to understand. :)

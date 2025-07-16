@@ -3,7 +3,7 @@ layout: post
 title: Issues with Cubietruck / Cubieboard 3
 date: 2014-07-01 00:00
 categories:
-- SoC
+- Development
 tags: 
 - Cubietruck 
 - Cubieboard 3

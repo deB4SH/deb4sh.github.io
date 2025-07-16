@@ -4,13 +4,10 @@ title: Docker Image - Minecraft Manufactio Docker Image
 date: 2021-09-08 00:00 
 categories: 
 - Docker 
-- Minecraft 
 tags:
 - docker
 - ci
 - cd
-- minecraft
-- minecraft mod
 - minecraft manufactio
 - maven
 - dind
