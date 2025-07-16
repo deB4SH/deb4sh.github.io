@@ -3,7 +3,6 @@ layout: post
 title: Download a web-index recursivly
 date: 2014-08-23 00:00
 categories:
-- Shell
 - Development
 tags:
 - shell magic

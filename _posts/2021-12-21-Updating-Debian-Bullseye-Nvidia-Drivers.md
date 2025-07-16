@@ -3,8 +3,7 @@ layout: post
 title: Debian Bullseye - Update to latest nvidia drivers
 date: 2021-12-21 00:00 
 categories: 
-- Debian 
-- Nvidia
+- Linux
 tags:
 - gnulinux
 - debian
