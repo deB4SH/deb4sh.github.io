@@ -4,7 +4,7 @@ title: Homelab Stories - Deploy your own Instance of Antennas in your Homelab
 date: 2021-05-31 00:00
 categories:
 - Selfhosted
-- DevOpsStories
+- DevOpsStory
 - Kubernetes
 tags:
 - kubernetes
