@@ -1,0 +1,44 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.1.1 Chrome/132.0.6834.210 Electron/34.3.3 Safari/537.36" version="26.1.1">
+  <diagram name="Seite-1" id="zVKiIwNpw3KTJxRX2v-7">
+    <mxGraphModel dx="768" dy="697" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="QtlTkA-cPTMOI8H6DK7j-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;flowAnimation=1;" edge="1" parent="1" source="QtlTkA-cPTMOI8H6DK7j-3" target="QtlTkA-cPTMOI8H6DK7j-30">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="560" y="190" />
+              <mxPoint x="560" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QtlTkA-cPTMOI8H6DK7j-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;flowAnimation=1;" edge="1" parent="1" source="QtlTkA-cPTMOI8H6DK7j-3" target="QtlTkA-cPTMOI8H6DK7j-31">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="560" y="190" />
+              <mxPoint x="560" y="410" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QtlTkA-cPTMOI8H6DK7j-3" value="Platform Engineer" style="verticalLabelPosition=bottom;shadow=0;dashed=0;align=center;html=1;verticalAlign=top;strokeWidth=1;shape=mxgraph.mockup.containers.userFemale;strokeColor=#666666;strokeColor2=#008cff;" vertex="1" parent="1">
+          <mxGeometry x="430" y="140" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="QtlTkA-cPTMOI8H6DK7j-29" value="YART" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="270" width="170" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="QtlTkA-cPTMOI8H6DK7j-1" value="" style="image;html=1;image=img/lib/clip_art/computers/Software_128x128.png" vertex="1" parent="QtlTkA-cPTMOI8H6DK7j-29">
+          <mxGeometry x="-46" y="-18" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="QtlTkA-cPTMOI8H6DK7j-30" value="JSON Schema" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="QtlTkA-cPTMOI8H6DK7j-29">
+          <mxGeometry x="30" y="40" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QtlTkA-cPTMOI8H6DK7j-31" value="Template Code" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="QtlTkA-cPTMOI8H6DK7j-29">
+          <mxGeometry x="30" y="110" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QtlTkA-cPTMOI8H6DK7j-34" value="maintains" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=90;" vertex="1" parent="1">
+          <mxGeometry x="540" y="320" width="60" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
