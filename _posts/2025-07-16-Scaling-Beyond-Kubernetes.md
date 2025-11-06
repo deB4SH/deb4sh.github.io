@@ -39,12 +39,131 @@ This does not mean the application developers are working on platform tools or v
 
 ![diagram use case one teamwork](/assets/2025-07-16-scaling-beyond-kubernetes/use_case_one_diag_teamwork.drawio.svg){:style="display:block; margin-left:auto; margin-right:auto"}
 
-After all that yapping lets get into some code blocks. As already mention both teams are working on single *golden configuration*. In a standard setup with YART this golden source is called a [config.yaml](https://github.com/deB4SH/demo-yart-scaling-beyond-kubernetes/blob/main/case_1/config/config.yaml).
+After all that yapping lets get into some code blocks. As already mentioned both teams are working on single *golden configuration*. In a standard setup with YART this golden source is called a [config.yaml](https://github.com/deB4SH/demo-yart-scaling-beyond-kubernetes/blob/main/case_1/config/config.yaml). The combined team is working together on one configuration to generate every related manifest to set up an infrastructure and service environment. 
 
-- kurz beschreiben was plattform engineers da so konfigurieren
-- beschreiben über welche teilbereiche die application devs sich gedanken machen
-- sicherheit durch json schema beschreiben (muss noch eingebaut werden in die demo)
-- durch enge zusammenarbeit ist ein hoher wissensgewinn bei allen 
+In this example the platform engineer may focus most of his time on configuring the general backends for azure. What is the default identifier for azure ressources? In which location should everything exist? How should the network policies look like? Is there a need to set up any vpn gateways? He could also provide a general configuration on a minimum setup of a tanzu kubernetes cluster like in this following example. Code snippets he may write look like the following listing.
+
+```yaml
+terraform:
+  azureDefaults:
+    name: mesa
+  azureRessourceGroup:
+    location: westeurope
+cluster:
+  name: gordonfreeman
+  defaults:
+    storageClass: zfs-pool-1
+    stage: blackmesa
+    stageShorthand: mesa
+  azureBackend:
+    subscription: 12345678-1234-4321-1234-12345678901
+    ressourceGroupName: rg-black-mesa-tf-backend
+    storageAccountName: halflifetfbackend
+  tkc:
+    spec:
+      controlplane:
+        replica: 3
+        vmclass: best-effort-small
+        volume: [
+            {
+              name: "containerd",
+              mountpath: "/var/lib/containerd",
+              capacity: 8
+            },
+            {
+              name: "kubelet",
+              mountpath: "/var/lib/kubelet",
+              capacity: 8
+            }
+          ]
+      nodepool: [
+          {
+            name: "freeman-workernodes-1",
+            replica: 5,
+            vmclass: "best-effort-medium",
+            volume: [
+              {
+                name: "containerd",
+                mountpath: "/var/lib/containerd",
+                capacity: 32
+              },
+              {
+                name: "kubelet",
+                mountpath: "/var/lib/kubelet",
+                capacity: 32
+              }
+            ]
+          }
+      ]
+```
+
+The general structure for the configuration of this setup is predefined by the schemata on which YART is working. An example schema configuration is prepared with the official repository of yart under the existing tests. You may want to check it out here: [schema folder](https://github.com/deB4SH/demo-yart-scaling-beyond-kubernetes/tree/main/case_1/schema)
+
+For exmaple in the code listing beforehand there was a tanzu kubernetes cluster block that requires a configuration for the *controlplane* element.
+As json schema this looks like the following listing.
+
+```json
+{
+    "$id": "https://schema.b4sh.de/configuration/tanzu/controlplane.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Tanzu Cluster Spec ControlPlane Schema",
+    "type": "object",
+    "properties": {
+        "replica": {
+            "type": "integer",
+            "default": "1",
+            "description": "Amount of control planes to create."
+        },
+        "vmclass": {
+            "type": "string",
+            "default": "best-effort-medium",
+            "description": "VM description to use for control plane."
+        },
+        "volume":{
+            "type": "array",
+            "description": "Volumes to mount towards newly created vm. May be null.",
+            "items": {
+                "$ref": "../../generic/kubernetes-volume.json"
+            }
+        }
+    },
+    "required": [
+      "replica",
+      "vmclass"
+    ]
+}
+```
+
+You can see that the json schema has two required fields that need to be fulfilled by the configuration, else the templater would not create the desired manifests and will print out a cause of what is missing. Fields like the volumes are optional and may not be required in your setup. Beside this defaults will allow to predetermine some of your configuration values if not set, which also helps the teams to reduce mistakes while preparing a new environment or keep the backwards compatbility alive when adding new fields that may not be defined. 
+
+But now you got all the schemata and all of the configurations? Now what?
+**Start living within the matrix of your configurations.**
+
+You got all your heart's desire on your fingertips, if the manifests are prepared? 
+
+Hmm? What does this mean *"if the manifests are prepared"*?
+Your configuration and the schemata are just one side of the medallion. 
+The other side are all related manifests to create the infrastructure and services you want to consume with your service.
+
+Think of it like an empty toolbelt. You are member of the development team and want to build a house. 
+But your toolbelt is empty in the first place. And this is where the job of the platform team within the cross-functional team resides. 
+Crafting and controlling the tools that are required for your developers to build good services.
+
+Need a hammer? Sure. Let us just add the bits and bobs here and you are free to scale. 
+Need a wrench? Sure. Here you go and want to know what? You just need to name it? Isn't that cool?
+
+Enough of the metaphoric speach. 
+In this setup both sides work together to create an unique experience on how to provide a service. 
+
+The platform team builds the tools that the developers are using in a guardrail secured environment. Due to the schemata evaluation many first adopter issues should be resolved by a simple regex evaluation. The developers are able to scale the services on their own without writing a ticket or issuing a service request to scale an environment accordingly to their needs. Everything is handled within the config file. No portal. No graphical user interface. No distraction.
+
+The whole concept written here is just an another internal developer platform concept with the common ground on a config file instead of an portal that everyone uses. It is not new in any form. So why all the yapping about this? 
+
+I wanted to present you an other way to tackle the rising issues I observe in our current workspace. Scalability and self-service are one of the most wanted features by developers and ops-folks. Even managers want it and expect to achieve a shorter time to market and higher focus on work from their teams. Reduce time to chat, write tickets, simply create things in a portal and everything should appear out of thin air. 
+
+Portals are hard to build. There are serveral solutions on the market that provide you with a pretty well base so you can start build your own packages ontop of it. Some are based on backstage and extend them with their flavor. Others are build from the ground up. The common ground is a dashboard which provides you all services introduced with their solution. You just need to write an addon which provides the configuration for the designated functionality you want to add. For example adding the capability to scale a rabbitmq instance on stackit beside your manged kubernetes within azure. 
+
+You may ask “This is pretty fantastic why is not everyone working in this way?”. Well. I observed myself that most teams fall into the same pitfall and create a setup like in use case 2. The managed infrastructure team.
 
 ### Use Case 2: Managed Infrastructure Team
 - kurze erläuterung was use case 2 ist und wie das team dort funktioniert
