@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Note: Lenovo Yoga 7 Audio Issues
+title: Notes forLenovo Yoga 7 Audio Issues
 date: 2026-01-27 00:00 
 categories: 
 - Note
