@@ -3,7 +3,7 @@ layout: post
 title: Building a Maven Task Builder for Bamboo
 date: 2021-04-02 00:00
 categories:
-- Bamboo
+- Note
 - Development
 tags:
 - bamboo
